@@ -18,6 +18,8 @@ Fix that first.
 
 The second thing one needs to do is to kill absolutely every running thing on the computer. Webbrowser typically suck a lot of juice at random points in time. Same with mail clients, irc clients, media players, etc. When you benchmark, run only your terminal and the benchmarking application. Disable system wide file indexing in your OS, etc.. Any background process that might pop up will cause instability in the results. 
 
+The third thing is that if your system is running with the 'basic' render loop (QSG_INFO=1 in the environment will tell you), you will most likely not be able to get velvet FPS because the animations are timer driven and will skip once or twice per frame by default. If threaded is not an option for whatever reason, try with QSG_RENDER_LOOP=windows (which uses vsync driven animations)
+
 ##the qmlbench tool
 
 It comes with a number of default settings which aim to help give stable numbers:
@@ -63,3 +65,28 @@ The numbers in these benchmarks mean how many times you can fill the screen. Run
 
 - drawcalls.qml: Take this one with a grain of salt. Graphics drivers have a lot of overhead in how drawing is set up, and seeing an individual GL call take up to a millisecond (yes, a millisecond) is not uncommon. This test is a highly constructed case to try to pinpoint the rough ballpart of how many discrete draw calls the GL stack is capable of. This is mostly important if you end up with an application that fails to do batching in the scene graph renderer, but then you will have loads of other performance problems as well, so perhaps just ignore this benchmark all together. 
 - gaussblur.qml: This benchmark is added to test how feasible live blurring is. Live blurring is an extreme fillrate test and is only something that should be considered on gaming and industrial hardware. And then you still probably want to cheat :p
+
+### benchmarks/images
+
+These benchmarks are there to validate the casual gaming idea which should be very viable with QML. 
+
+The following three benchmarks give an indication of how many animated items can run simultaneously in the UI. It should be in the thousands. 
+
+- moving-images-animation.qml
+- moving-images-animators.qml
+- moving-images-script.qml
+
+One quirk if you run these is that on a threaded renderloop, the animation one runs faster than animators. This is because the work is broken into two major chunks. One is doing the animation while the other is doing the batching in the renderer and scheduling the rendering. If those happen on separate threads, we get better parallelization so 'animation' comes out better. However, if you try again with QSG_RENDER_LOOP=windows in the environment, you'll see that if it all happens on the same thread, then animators are a bit cheaper (because they are simpler)
+
+- sprite-image.qml
+- sprite-sequence.qml
+
+These two benchmarks are created to illustrate why SpriteSequence should not be used for Sprite based games and serve as a benchmark for whoever steps up to improve it.
+
+### benchmarks/changes
+
+These benchmarks were created as a result of some painful bugreports we got about text performance. So we're testing how different types of changes in text affect the rest of the scene rendering. It is a very specific benchmark, and could be ignored by anyone which is not directly investigating scene graph internals of text drawing.
+
+## what's missing?
+
+I'd love to get creating benchmarks and some page-stack transition benchmarks from Qt Quick Controls 1.0 and the upcoming 2.0 in here.
