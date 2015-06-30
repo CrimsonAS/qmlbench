@@ -195,10 +195,15 @@ public:
 
         int time = timer.elapsed();
         if (time > 5000) {
+            qreal msPerFrame = time / float(frameCount);
+            qreal screenRate = screen()->refreshRate();
             std::cout << std::endl
                      << "FPS: " << frameCount * 1000 / float(time)
                      << " -- " << frameCount << " frames in " << time << "ms; "
-                     << time / float(frameCount) << " ms/frame " << std::endl;
+                     <<  msPerFrame << " ms/frame " << std::endl
+                     << "QScreen says: " << screenRate;
+            if (qAbs(screenRate - msPerFrame) > msPerFrame * 0.1)
+                std::cout << " (not accurate, run benchmarks with '--fps-override " << int(1000/msPerFrame) << "')" << std::endl << std::endl;
             exit(0);
 
         } else {
