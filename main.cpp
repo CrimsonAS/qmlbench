@@ -17,8 +17,27 @@ public:
     {
         m_results["id"] = id;
 
+        QString prettyProductName =
+#if QT_VERSION >= 0x050400
+            QSysInfo::prettyProductName();
+#else
+#  if defined(Q_OS_IOS)
+            QStringLiteral("iOS");
+#  elif defined(Q_OS_OSX)
+            QString::fromLatin1("OSX %d").arg(QSysInfo::macVersion());
+#  elif defined(Q_OS_WIN)
+            QString::fromLatin1("Windows %d").arg(QSysInfo::windowsVersion());
+#  elif defined(Q_OS_LINUX)
+            QStringLiteral("Linux");
+#  elif defined(Q_OS_ANDROID)
+            QStringLiteral("Android");
+#  else
+            QStringLiteral("unknown");
+#  endif
+#endif
+
         QVariantMap osMap;
-        osMap["prettyProductName"] = QSysInfo::prettyProductName();
+        osMap["prettyProductName"] = prettyProductName;
         osMap["platformPlugin"] = QGuiApplication::platformName();
         m_results["os"] = osMap;
 
@@ -51,7 +70,7 @@ public:
 
         if (!onlyPrintJson) {
             std::cout << "ID:          " << id.toStdString() << std::endl;
-            std::cout << "OS:          " << QSysInfo::prettyProductName().toStdString() << std::endl;
+            std::cout << "OS:          " << prettyProductName.toStdString() << std::endl;
             std::cout << "QPA:         " << QGuiApplication::platformName().toStdString() << std::endl;
             std::cout << "GL_VENDOR:   " << vendor << std::endl;
             std::cout << "GL_RENDERER: " << renderer << std::endl;
@@ -100,7 +119,7 @@ public:
     {
         if (onlyPrintJson) {
             QJsonDocument results = QJsonDocument::fromVariant(m_results);
-            std::cout << results.toJson().toStdString();
+            std::cout << results.toJson().constData();
         }
         m_results.clear();
     }
