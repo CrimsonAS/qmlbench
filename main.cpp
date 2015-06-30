@@ -6,6 +6,107 @@
 
 #include "qcommandlineparser.h"
 
+static bool onlyPrintJson = false;
+
+class ResultRecorder
+{
+    static QVariantMap m_results;
+
+public:
+    static void startResults(const QString &id)
+    {
+        m_results["id"] = id;
+
+        QVariantMap osMap;
+        osMap["prettyProductName"] = QSysInfo::prettyProductName();
+        osMap["platformPlugin"] = QGuiApplication::platformName();
+        m_results["os"] = osMap;
+
+        // The following code makes the assumption that an OpenGL context the GUI
+        // thread will get the same capabilities as the render thread's OpenGL
+        // context. Not 100% accurate, but it works...
+        QOpenGLContext context;
+        context.create();
+        QOffscreenSurface surface;
+        // In very odd cases, we can get incompatible configs here unless we pass the
+        // GL context's format on to the offscreen format.
+        surface.setFormat(context.format());
+        surface.create();
+        if (!context.makeCurrent(&surface)) {
+            qWarning() << "failed to acquire GL context to get version info.";
+            return;
+        }
+
+        QOpenGLFunctions *func = context.functions();
+#if QT_VERSION >= 0x050300
+        const char *vendor = (const char *) func->glGetString(GL_VENDOR);
+        const char *renderer = (const char *) func->glGetString(GL_RENDERER);
+        const char *version = (const char *) func->glGetString(GL_VERSION);
+#else
+        Q_UNUSED(func);
+        const char *vendor = (const char *) glGetString(GL_VENDOR);
+        const char *renderer = (const char *) glGetString(GL_RENDERER);
+        const char *version = (const char *) glGetString(GL_VERSION);
+#endif
+
+        if (!onlyPrintJson) {
+            std::cout << "ID:          " << id.toStdString() << std::endl;
+            std::cout << "OS:          " << QSysInfo::prettyProductName().toStdString() << std::endl;
+            std::cout << "QPA:         " << QGuiApplication::platformName().toStdString() << std::endl;
+            std::cout << "GL_VENDOR:   " << vendor << std::endl;
+            std::cout << "GL_RENDERER: " << renderer << std::endl;
+            std::cout << "GL_VERSION:  " << version << std::endl;
+        }
+
+        QVariantMap glInfo;
+        glInfo["vendor"] = vendor;
+        glInfo["renderer"] = renderer;
+        glInfo["version"] = version;
+
+        m_results["opengl"] = glInfo;
+
+        context.doneCurrent();
+    }
+
+    static void recordWindowSize(const QSize &windowSize)
+    {
+        m_results["windowSize"] = QString::number(windowSize.width()) + "x" + QString::number(windowSize.height());
+    }
+
+    static void recordOperationsPerFrame(const QString &benchmark, int ops)
+    {
+        QVariantMap benchMap = m_results[benchmark].toMap();
+        QVariantList benchResults = benchMap["results"].toList();
+        benchResults.append(ops);
+
+        benchMap["results"] = benchResults;
+        m_results[benchmark] = benchMap;
+
+        if (!onlyPrintJson)
+            std::cout << "    " << ops << " ops/frame" << std::endl;
+    }
+
+    static void recordOperationsPerFrameAverage(const QString &benchmark, int ops)
+    {
+        QVariantMap benchMap = m_results[benchmark].toMap();
+        benchMap["average"] = ops;
+        m_results[benchmark] = benchMap;
+
+        if (!onlyPrintJson)
+            std::cout << "    " << ops << " ops/frame average" << std::endl;
+    }
+
+    static void finish()
+    {
+        if (onlyPrintJson) {
+            QJsonDocument results = QJsonDocument::fromVariant(m_results);
+            std::cout << results.toJson().toStdString();
+        }
+        m_results.clear();
+    }
+};
+QVariantMap ResultRecorder::m_results;
+
 class FpsDecider : public QWindow
 {
 public:
@@ -202,7 +303,6 @@ int main(int argc, char **argv)
     qmlRegisterType<QQuickView>();
 
     QGuiApplication app(argc, argv);
-    std::cout << "Running against " << QT_VERSION_STR << std::endl;
 
 	QCommandLineParser parser;
 
@@ -212,6 +312,16 @@ int main(int argc, char **argv)
     QCommandLineOption verboseOption(QStringList() << QStringLiteral("v") << QStringLiteral("verbose"),
                                      QStringLiteral("Verbose mode"));
     parser.addOption(verboseOption);
+
+    QCommandLineOption idOption(QStringLiteral("id"),
+                                QStringLiteral("Provides a unique identifier for this run in the JSON output."),
+                                QStringLiteral("identifier"),
+                                QStringLiteral(""));
+    parser.addOption(idOption);
+
+    QCommandLineOption jsonOption(QStringLiteral("json"),
+                                QStringLiteral("Switches to provide JSON output of benchmark runs."));
+    parser.addOption(jsonOption);
 
     QCommandLineOption repeatOption(QStringLiteral("repeat"),
                                          QStringLiteral("Sets the number of times to repeat the benchmark, to get more stable results"),
@@ -275,6 +385,10 @@ int main(int argc, char **argv)
 
     parser.process(app);
 
+    if (parser.isSet(jsonOption)) {
+        onlyPrintJson = true;
+    }
+
     if (parser.isSet(decideFpsOption)) {
         FpsDecider fpsDecider;
         if (parser.isSet(fullscreenOption))
@@ -304,6 +418,9 @@ int main(int argc, char **argv)
 
     if (size.isValid())
         runner.options.windowSize = size;
+
+    ResultRecorder::startResults(parser.value(idOption));
+    ResultRecorder::recordWindowSize(runner.options.windowSize);
 
     if (parser.isSet(fpsOverrideOption))
         runner.options.fpsOverride = parser.value(fpsOverrideOption).toFloat();
@@ -345,7 +462,9 @@ int main(int argc, char **argv)
     if (!runner.execute())
         return 0;
 
-    return app.exec();
+    int ret = app.exec();
+    ResultRecorder::finish();
+    return ret;
 }
 
 BenchmarkRunner::BenchmarkRunner()
@@ -392,7 +511,7 @@ void BenchmarkRunner::start()
 {
     Benchmark &bm = benchmarks[m_currentBenchmark];
 
-    if (bm.operationsPerFrame.size() == 0)
+    if (bm.operationsPerFrame.size() == 0 && !onlyPrintJson)
         std::cout << "running: " << bm.fileName.toStdString() << std::endl;
 
     m_component = new QQmlComponent(m_view->engine(), bm.fileName);
@@ -419,7 +538,8 @@ void BenchmarkRunner::maybeStartNext()
     if (m_currentBenchmark < benchmarks.size()) {
         QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
     } else {
-        std::cout << "All done..." << std::endl;
+        if (!onlyPrintJson)
+            std::cout << "All done..." << std::endl;
         qApp->quit();
     }
 }
@@ -431,7 +551,7 @@ void BenchmarkRunner::abort()
 
 void BenchmarkRunner::abortAll()
 {
-    std::cout << "Aborting all benchmarks..." << std::endl;
+    qWarning() << "Aborting all benchmarks...";
     qApp->quit();
 }
 
@@ -440,11 +560,12 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     Benchmark &bm = benchmarks[m_currentBenchmark];
     bm.completed = true;
     bm.operationsPerFrame << ops;
-    std::cout << "    " << ops << " ops/frame" << std::endl;
+    ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
     if (bm.operationsPerFrame.size() == options.repeat && options.repeat > 1) {
         qreal avg = 0;
-        foreach (qreal r, bm.operationsPerFrame) avg += r;
-        std::cout << "    " << (avg / options.repeat) << " ops/frame average" << std::endl;
+        foreach (qreal r, bm.operationsPerFrame)
+            avg += r;
+        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg / options.repeat);
     }
     complete();
 }
