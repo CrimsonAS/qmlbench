@@ -560,6 +560,9 @@ void BenchmarkRunner::start()
     m_component = new QQmlComponent(m_view->engine(), bm.fileName);
     if (m_component->status() != QQmlComponent::Ready) {
         qWarning() << "component is not ready" << bm.fileName;
+        foreach (const QQmlError &error, m_component->errors()) {
+            qWarning() << "ERROR: " << error;
+        }
         abort();
         return;
     }
