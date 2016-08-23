@@ -59,7 +59,7 @@ Item {
 
         Connections {
             target: benchmark.view
-            onFrameSwapped: fpsTimer.frameSwapped()
+            onBeforeSynchronizing: fpsTimer.maybeRestart()
         }
 
 
@@ -87,7 +87,7 @@ Item {
                 stop();
                 swapCountDown = 5;
             }
-            function frameSwapped() {
+            function maybeRestart() {
                 if (!running && --swapCountDown < 0) {
                     tick = 0;
                     lastFrameTime = new Date();
