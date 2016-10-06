@@ -113,7 +113,7 @@ Item {
                    tool to improve the accuracy of the results.
                  */
                 var errorRatio = Math.abs(1 - root.fps / root.targetFrameRate);
-                var ok = errorRatio < benchmark.fpsTolerance
+                var ok = root.fps > root.targetFrameRate || errorRatio < benchmark.fpsTolerance
 
                 var max = Number.MAX_VALUE;
                 if (item.hasOwnProperty("maxCount"))
