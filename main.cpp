@@ -42,6 +42,7 @@ public:
         m_results["os"] = osMap;
 
         m_results["qt"] = QT_VERSION_STR;
+        m_results["command-line"] = qApp->arguments().join(' ');
 
         // The following code makes the assumption that an OpenGL context the GUI
         // thread will get the same capabilities as the render thread's OpenGL
@@ -113,6 +114,8 @@ public:
         benchMap["average"] = ops;
         benchMap["samples-in-average"] = repetitions;
         benchMap["standard-deviation"] = standardDeviation;
+        benchMap["standard-error"] = standardDeviation / sqrt(repetitions);
+        benchMap["coefficient-of-variation"] = standardDeviation / ops;
         m_results[benchmark] = benchMap;
 
         if (!onlyPrintJson)
