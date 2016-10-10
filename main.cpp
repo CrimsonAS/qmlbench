@@ -41,6 +41,8 @@ public:
         osMap["platformPlugin"] = QGuiApplication::platformName();
         m_results["os"] = osMap;
 
+        m_results["qt"] = QT_VERSION_STR;
+
         // The following code makes the assumption that an OpenGL context the GUI
         // thread will get the same capabilities as the render thread's OpenGL
         // context. Not 100% accurate, but it works...
@@ -105,15 +107,16 @@ public:
             std::cout << "    " << ops << " ops/frame" << std::endl;
     }
 
-    static void recordOperationsPerFrameAverage(const QString &benchmark, int ops, int repetitions)
+    static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int repetitions, qreal standardDeviation)
     {
         QVariantMap benchMap = m_results[benchmark].toMap();
         benchMap["average"] = ops;
         benchMap["samples-in-average"] = repetitions;
+        benchMap["standard-deviation"] = standardDeviation;
         m_results[benchmark] = benchMap;
 
         if (!onlyPrintJson)
-            std::cout << "    Average: " << ops << " ops/frame (based on " << repetitions << " median values)" << std::endl;
+            std::cout << "    Average: " << ops << " ops/frame (based on " << repetitions << " median values)" << ", standard deviation:" << standardDeviation << std::endl;
     }
 
     static void finish()
@@ -613,7 +616,16 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
         foreach (qreal r, results)
             avg += r;
 
-        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg / options.repeat, options.repeat);
+        avg /= options.repeat;
+
+        qreal variance = 0.0;
+        foreach (qreal r, results)
+            variance += (r - avg) * (r - avg);
+        variance /= options.repeat;
+
+        qreal standardDeviation = ::sqrt(variance);
+
+        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, options.repeat, standardDeviation);
     }
     complete();
 }
