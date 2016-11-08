@@ -256,15 +256,15 @@ struct Benchmark
 {
     Benchmark(const QString &file)
         : fileName(file)
-        , completed(false)
     {
     }
 
     QString fileName;
     QSize windowSize;
 
-    bool completed;
     QList<qreal> operationsPerFrame;
+
+    QHash<double, QList<qreal>> averageBuckets;
 };
 
 
@@ -596,25 +596,50 @@ void BenchmarkRunner::abortAll()
 void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
 {
     Benchmark &bm = benchmarks[m_currentBenchmark];
-    bm.completed = true;
     bm.operationsPerFrame << ops;
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
-    int repetitions = options.repeat + options.medianReduce * 2;
-    if (bm.operationsPerFrame.size() == repetitions && repetitions > 1) {
+    // int repetitions = options.repeat + options.medianReduce * 2;
+    // if (bm.operationsPerFrame.size() == repetitions && repetitions > 1) {
 
-        QList<qreal> results = bm.operationsPerFrame;
-        std::sort(results.begin(), results.end());
-        for (int i=0; i<options.medianReduce; ++i) {
-            results.pop_front();
-            results.pop_back();
+    //     QList<qreal> results = bm.operationsPerFrame;
+    //     std::sort(results.begin(), results.end());
+    //     for (int i=0; i<options.medianReduce; ++i) {
+    //         results.pop_front();
+    //         results.pop_back();
+    //     }
+
+    //     qreal avg = 0;
+    //     foreach (qreal r, results)
+    //         avg += r;
+
+    //     ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg / options.repeat, options.repeat);
+    // }
+
+    QList<qreal> bucket;
+    for (QHash<qreal, QList<qreal>>::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
+        qreal avg = it.key();
+        qreal dev = qAbs(ops - avg) / avg;
+        qDebug() << " -- looking at average bucket" << avg << "of size" << it.value().size() << "- deviation:" << dev;
+        if (dev < 0.05) {
+            bucket = it.value();
+            bm.averageBuckets.erase(it);
+            qDebug() << " ---> found matching bucket...";
+            break;
         }
-
-        qreal avg = 0;
-        foreach (qreal r, results)
-            avg += r;
-
-        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg / options.repeat, options.repeat);
     }
+    bucket.append(ops);
+
+    qreal avg = 0;
+    foreach (qreal r, bucket)
+        avg += r;
+    avg /= bucket.size();
+    if (bucket.size() == 1)
+        qDebug() << " ---> forming a new bucket" << avg;
+    bm.averageBuckets.insert(avg, bucket);
+
+    if (bucket.size() >= options.repeat)
+        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, bucket.size());
+
     complete();
 }
 
@@ -623,9 +648,12 @@ void BenchmarkRunner::complete()
     m_component->deleteLater();
     m_component = 0;
 
-    int repetitions = options.repeat + options.medianReduce * 2;
+    // int repetitions = options.repeat + options.medianReduce * 2;
+    int biggestBucket = 0;
+    foreach (const QList<qreal> &bucket, benchmarks[m_currentBenchmark].averageBuckets)
+        biggestBucket = qMax(biggestBucket, bucket.size());
 
-    if (benchmarks[m_currentBenchmark].operationsPerFrame.size() < repetitions)
+    if (biggestBucket < options.repeat)
         QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
     else
         QMetaObject::invokeMethod(this, "maybeStartNext", Qt::QueuedConnection);
