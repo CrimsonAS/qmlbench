@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include <QtCore>
 #include <QtGui>
@@ -40,6 +41,8 @@ public:
         osMap["prettyProductName"] = prettyProductName;
         osMap["platformPlugin"] = QGuiApplication::platformName();
         m_results["os"] = osMap;
+        m_results["qt"] = QT_VERSION_STR;
+        m_results["command-line"] = qApp->arguments().join(' ');
 
         // The following code makes the assumption that an OpenGL context the GUI
         // thread will get the same capabilities as the render thread's OpenGL
@@ -105,15 +108,27 @@ public:
             std::cout << "    " << ops << " ops/frame" << std::endl;
     }
 
-    static void recordOperationsPerFrameAverage(const QString &benchmark, int ops, int repetitions)
+    static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, int allSamples, qreal stddevAll)
     {
         QVariantMap benchMap = m_results[benchmark].toMap();
         benchMap["average"] = ops;
-        benchMap["samples-in-average"] = repetitions;
+        benchMap["samples-in-average"] = samples;
+        benchMap["standard-deviation"] = stddev;
+        benchMap["standard-error"] = stddev / sqrt(samples);
+        benchMap["coefficient-of-variation"] = stddev / samples;
+        benchMap["samples-total"] = allSamples;
+        benchMap["standard-deviation-all-samples"] = stddevAll;
+
         m_results[benchmark] = benchMap;
 
-        if (!onlyPrintJson)
-            std::cout << "    Average: " << ops << " ops/frame (based on " << repetitions << " median values)" << std::endl;
+        if (!onlyPrintJson) {
+            std::cout << "    Average: " << ops << " ops/frame;"
+                      << " based on " << samples << " out of " << allSamples << " samples"
+                      << "; StdDev=" << std::setprecision(3) << stddev
+                      << ", CoV=" << (stddev / ops)
+                      << " - StdDev (all samples included)=" << stddevAll
+                      << std::endl;
+        }
     }
 
     static void finish()
@@ -256,15 +271,15 @@ struct Benchmark
 {
     Benchmark(const QString &file)
         : fileName(file)
-        , completed(false)
     {
     }
 
     QString fileName;
     QSize windowSize;
 
-    bool completed;
     QList<qreal> operationsPerFrame;
+
+    QHash<double, QList<qreal>> averageBuckets;
 };
 
 
@@ -593,28 +608,44 @@ void BenchmarkRunner::abortAll()
     qApp->quit();
 }
 
+qreal stddev(qreal avg, const QList<qreal> &list)
+{
+    qreal dev = 0;
+    foreach (qreal v, list)
+        dev += (v - avg) * (v - avg);
+    return ::sqrt(dev / list.size());
+}
+
 void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
 {
     Benchmark &bm = benchmarks[m_currentBenchmark];
-    bm.completed = true;
     bm.operationsPerFrame << ops;
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
-    int repetitions = options.repeat + options.medianReduce * 2;
-    if (bm.operationsPerFrame.size() == repetitions && repetitions > 1) {
 
-        QList<qreal> results = bm.operationsPerFrame;
-        std::sort(results.begin(), results.end());
-        for (int i=0; i<options.medianReduce; ++i) {
-            results.pop_front();
-            results.pop_back();
+    QList<qreal> bucket;
+    for (QHash<qreal, QList<qreal>>::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
+        qreal avg = it.key();
+        qreal dev = qAbs(ops - avg) / avg;
+        if (dev < 0.05) {
+            bucket = it.value();
+            bm.averageBuckets.erase(it);
+            break;
         }
-
-        qreal avg = 0;
-        foreach (qreal r, results)
-            avg += r;
-
-        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg / options.repeat, options.repeat);
     }
+    bucket.append(ops);
+
+    qreal avg = 0;
+    foreach (qreal r, bucket)
+        avg += r;
+    avg /= bucket.size();
+    bm.averageBuckets.insert(avg, bucket);
+
+    if (bucket.size() >= options.repeat) {
+        qreal stddevGlobal = stddev(avg, bm.operationsPerFrame);
+        qreal stddevBucket = stddev(avg, bucket);
+        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, bucket.size(), stddevBucket, bm.operationsPerFrame.size(), stddevGlobal);
+    }
+
     complete();
 }
 
@@ -623,9 +654,12 @@ void BenchmarkRunner::complete()
     m_component->deleteLater();
     m_component = 0;
 
-    int repetitions = options.repeat + options.medianReduce * 2;
+    // int repetitions = options.repeat + options.medianReduce * 2;
+    int biggestBucket = 0;
+    foreach (const QList<qreal> &bucket, benchmarks[m_currentBenchmark].averageBuckets)
+        biggestBucket = qMax(biggestBucket, bucket.size());
 
-    if (benchmarks[m_currentBenchmark].operationsPerFrame.size() < repetitions)
+    if (biggestBucket < options.repeat)
         QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
     else
         QMetaObject::invokeMethod(this, "maybeStartNext", Qt::QueuedConnection);
