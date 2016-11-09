@@ -243,7 +243,6 @@ struct Options
         , repeat(1)
         , delayedStart(0)
         , count(-1)
-        , medianReduce(0)
         , fpsTolerance(0.05)
         , fpsInterval(1000)
         , fpsOverride(0)
@@ -257,7 +256,6 @@ struct Options
     int repeat;
     int delayedStart;
     int count;
-    int medianReduce;
     qreal fpsTolerance;
     qreal fpsInterval;
     qreal fpsOverride;
@@ -420,13 +418,6 @@ int main(int argc, char **argv)
                                    QStringLiteral("-1"));
     parser.addOption(countOption);
 
-    QCommandLineOption medianReduce(QStringLiteral("median-reduce"),
-                                 QStringLiteral("Add additional repetitions and drop the extremeties"),
-                                 QStringLiteral("count"),
-                                 QStringLiteral("1"));
-    parser.addOption(medianReduce);
-
-
     parser.addPositionalArgument(QStringLiteral("input"),
                                  QStringLiteral("One or more QML files or a directory of QML files to benchmark"));
     const QCommandLineOption &helpOption = parser.addHelpOption();
@@ -460,7 +451,6 @@ int main(int argc, char **argv)
     runner.options.bmTemplate = parser.value(templateOption);
     runner.options.delayedStart = parser.value(delayOption).toInt();
     runner.options.count = parser.value(countOption).toInt();
-    runner.options.medianReduce = parser.value(medianReduce).toInt();
 
     QSize size(parser.value(widthOption).toInt(),
                parser.value(heightOption).toInt());
@@ -502,8 +492,6 @@ int main(int argc, char **argv)
         std::cout << "Fps Interval .......: " << runner.options.fpsInterval << std::endl;
         std::cout << "Fps Tolerance ......: " << runner.options.fpsTolerance << std::endl;
         std::cout << "Repetitions ........: " << runner.options.repeat;
-        if (runner.options.medianReduce > 0)
-            std::cout << " + " << runner.options.medianReduce * 2 << " for median reduction";
         std::cout << std::endl;
         std::cout << "Template ...........: " << runner.options.bmTemplate.toStdString() << std::endl;
         std::cout << "Benchmarks:" << std::endl;
@@ -654,7 +642,6 @@ void BenchmarkRunner::complete()
     m_component->deleteLater();
     m_component = 0;
 
-    // int repetitions = options.repeat + options.medianReduce * 2;
     int biggestBucket = 0;
     foreach (const QList<qreal> &bucket, benchmarks[m_currentBenchmark].averageBuckets)
         biggestBucket = qMax(biggestBucket, bucket.size());
