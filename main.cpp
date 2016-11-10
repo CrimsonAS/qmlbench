@@ -277,7 +277,7 @@ struct Benchmark
 
     QList<qreal> operationsPerFrame;
 
-    QHash<double, QList<qreal>> averageBuckets;
+    QHash<qreal, QList<qreal>> averageBuckets;
 };
 
 
