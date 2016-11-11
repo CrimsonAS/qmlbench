@@ -108,7 +108,7 @@ public:
             std::cout << "    " << ops << " ops/frame" << std::endl;
     }
 
-    static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, int allSamples, qreal stddevAll)
+    static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, int allSamples, qreal stddevAll, qreal median)
     {
         QVariantMap benchMap = m_results[benchmark].toMap();
         benchMap["average"] = ops;
@@ -118,12 +118,12 @@ public:
         benchMap["coefficient-of-variation"] = stddev / samples;
         benchMap["samples-total"] = allSamples;
         benchMap["standard-deviation-all-samples"] = stddevAll;
-
-        m_results[benchmark] = benchMap;
+        benchMap["median"] = median;
 
         if (!onlyPrintJson) {
             std::cout << "    Average: " << ops << " ops/frame;"
-                      << " based on " << samples << " out of " << allSamples << " samples"
+                      << " using " << samples << "/" << allSamples << " samples"
+                      << "; MedianAll=" << median
                       << "; StdDev=" << std::setprecision(3) << stddev
                       << ", CoV=" << (stddev / ops)
                       << " - StdDev (all samples included)=" << stddevAll
@@ -631,7 +631,10 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     if (bucket.size() >= options.repeat) {
         qreal stddevGlobal = stddev(avg, bm.operationsPerFrame);
         qreal stddevBucket = stddev(avg, bucket);
-        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, bucket.size(), stddevBucket, bm.operationsPerFrame.size(), stddevGlobal);
+        QList<qreal> all = bm.operationsPerFrame;
+        std::sort(all.begin(), all.end());
+        qreal median = all.at(all.size() / 2);
+        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, bucket.size(), stddevBucket, bm.operationsPerFrame.size(), stddevGlobal, median);
     }
 
     complete();
