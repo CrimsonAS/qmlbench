@@ -124,11 +124,13 @@ public:
             std::cout << "    Average: " << ops << " ops/frame;"
                       << " using " << samples << "/" << allSamples << " samples"
                       << "; MedianAll=" << median
-                      << "; StdDev=" << std::setprecision(3) << stddev
+                      << "; StdDev=" << stddev
                       << ", CoV=" << (stddev / ops)
                       << " - StdDev (all samples included)=" << stddevAll
                       << std::endl;
         }
+
+        m_results[benchmark] = benchMap;
     }
 
     static void finish()
