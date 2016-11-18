@@ -115,7 +115,7 @@ public:
         benchMap["samples-in-average"] = samples;
         benchMap["standard-deviation"] = stddev;
         benchMap["standard-error"] = stddev / sqrt(samples);
-        benchMap["coefficient-of-variation"] = stddev / samples;
+        benchMap["coefficient-of-variation"] = stddev / ops;
         benchMap["samples-total"] = allSamples;
         benchMap["standard-deviation-all-samples"] = stddevAll;
         benchMap["median"] = median;
