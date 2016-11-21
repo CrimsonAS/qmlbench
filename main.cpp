@@ -279,7 +279,7 @@ struct Benchmark
 
     QList<qreal> operationsPerFrame;
 
-    QHash<qreal, QList<qreal>> averageBuckets;
+    QHash<qreal, QList<qreal> > averageBuckets;
 };
 
 
@@ -613,7 +613,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
 
     QList<qreal> bucket;
-    for (QHash<qreal, QList<qreal>>::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
+    for (QHash<qreal, QList<qreal> >::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
         qreal avg = it.key();
         qreal dev = qAbs(ops - avg) / avg;
         if (dev < 0.05) {
