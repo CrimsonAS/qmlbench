@@ -1,0 +1,13 @@
+language: cpp
+dist: trusty
+sudo: required
+
+install:
+  - sudo apt-add-repository -y ppa:beineri/opt-qt562-trusty
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install qt56quickcontrols qt56declarative qt56tools qt56svg
+  - source /opt/qt56/bin/qt56-env.sh
+
+script:
+  - qmake
+  - make
