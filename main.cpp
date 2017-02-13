@@ -620,7 +620,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     QList<qreal> bucket;
     for (QHash<qreal, QList<qreal> >::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
         qreal avg = it.key();
-        qreal dev = qAbs(ops - avg) / avg;
+        qreal dev = qFuzzyIsNull(avg) ? 0.0 : qAbs(ops - avg) / avg;
         if (dev < 0.05) {
             bucket = it.value();
             bm.averageBuckets.erase(it);
