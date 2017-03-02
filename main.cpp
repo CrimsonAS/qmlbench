@@ -132,8 +132,12 @@ public:
         benchMap["results"] = benchResults;
         m_results[benchmark] = benchMap;
 
-        if (!onlyPrintJson)
-            std::cout << "    " << ops << " ops/frame" << std::endl;
+        if (!onlyPrintJson) {
+            if (opsAreActuallyFrames)
+                std::cout << "    " << ops << " frames" << std::endl;
+            else
+                std::cout << "    " << ops << " ops/frame" << std::endl;
+        }
     }
 
     static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, int allSamples, qreal stddevAll, qreal median)
@@ -149,7 +153,13 @@ public:
         benchMap["median"] = median;
 
         if (!onlyPrintJson) {
-            std::cout << "    Average: " << ops << " ops/frame;"
+            std::string opsString;
+            if (opsAreActuallyFrames)
+                opsString = " frames";
+            else
+                opsString = " ops/frame";
+
+            std::cout << "    Average: " << ops << " " << opsString << ";"
                       << " using " << samples << "/" << allSamples << " samples"
                       << "; MedianAll=" << median
                       << "; StdDev=" << stddev
@@ -169,8 +179,11 @@ public:
         }
         m_results.clear();
     }
+
+    static bool opsAreActuallyFrames;
 };
 QVariantMap ResultRecorder::m_results;
+bool ResultRecorder::opsAreActuallyFrames = false;
 
 class FpsDecider : public QWindow
 {
@@ -372,6 +385,27 @@ private:
 
 int main(int argc, char **argv)
 {
+    // We need to do this early on, so there's no interference from the shared
+    // GL context.
+    bool expectingShell = false;
+    for (int i = 0; i < argc; ++i) {
+        if (strcmp(argv[i], "--shell")) {
+            expectingShell = true;
+        } else if (expectingShell && strcmp(argv[i], "frame-count") == 0) {
+            QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+#if QT_VERSION >= 0x050300
+            format.setSwapInterval(0);
+#else
+            fprintf(stderr, "Cannot disable swap interval on this Qt version, frame-count shell won't work properly!\n");
+            ::exit(1);
+#endif
+            QSurfaceFormat::setDefaultFormat(format);
+        } else {
+            expectingShell = false;
+        }
+    }
+
+
     qmlRegisterType<QQuickView>();
 
     QGuiApplication app(argc, argv);
@@ -440,7 +474,7 @@ int main(int argc, char **argv)
     parser.addOption(fullscreenOption);
 
     QCommandLineOption templateOption(QStringList() << QStringLiteral("s") << QStringLiteral("shell"),
-                                      QStringLiteral("What kind of benchmark shell to run: 'sustained-fps', 'static-count"),
+                                      QStringLiteral("What kind of benchmark shell to run: 'sustained-fps', 'static-count', 'frame-count'"),
                                       QStringLiteral("template"));
     parser.addOption(templateOption);
 
@@ -500,6 +534,10 @@ int main(int argc, char **argv)
         runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
     else if (runner.options.bmTemplate == QStringLiteral("static-count"))
         runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithStaticCount.qml");
+    else if (runner.options.bmTemplate == QStringLiteral("frame-count")) {
+        ResultRecorder::opsAreActuallyFrames = true;
+        runner.options.bmTemplate = QStringLiteral("qrc:/Shell_TotalFramesWithStaticCount.qml");
+    }
     else
         runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
 

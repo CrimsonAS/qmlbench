@@ -3,5 +3,6 @@
   <qresource>
     <file>Shell_SustainedFpsWithCount.qml</file>
     <file>Shell_SustainedFpsWithStaticCount.qml</file>
+    <file>Shell_TotalFramesWithStaticCount.qml</file>
   </qresource>
 </RCC>
