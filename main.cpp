@@ -243,6 +243,7 @@ struct Options
         : fullscreen(false)
         , verbose(false)
         , repeat(1)
+        , maximumBuckets(10)
         , delayedStart(0)
         , count(-1)
         , fpsTolerance(0.05)
@@ -256,6 +257,7 @@ struct Options
     bool fullscreen;
     bool verbose;
     int repeat;
+    int maximumBuckets;
     int delayedStart;
     int count;
     qreal fpsTolerance;
@@ -618,7 +620,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     QList<qreal> bucket;
     for (QHash<qreal, QList<qreal> >::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
         qreal avg = it.key();
-        qreal dev = qAbs(ops - avg) / avg;
+        qreal dev = qFuzzyIsNull(avg) ? 0.0 : qAbs(ops - avg) / avg;
         if (dev < 0.05) {
             bucket = it.value();
             bm.averageBuckets.erase(it);
@@ -633,7 +635,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     avg /= bucket.size();
     bm.averageBuckets.insert(avg, bucket);
 
-    if (bucket.size() >= options.repeat) {
+    if (bucket.size() >= options.repeat || bm.averageBuckets.size() >= options.maximumBuckets) {
         qreal stddevGlobal = stddev(avg, bm.operationsPerFrame);
         qreal stddevBucket = stddev(avg, bucket);
         QList<qreal> all = bm.operationsPerFrame;
