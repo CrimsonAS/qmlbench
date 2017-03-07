@@ -76,8 +76,17 @@ Item {
             property real t;
             NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
             property bool inv;
+            property int countDown: 5;
             onTChanged: {
-                ++fpsTimer.frameCount;
+                // Run a small countdown for the first few frames so that
+                // benchmarks that test  animation (without creation) has a
+                // chance to stabilize before we start measuring
+                if (countDown > 0)
+                    --countDown;
+                else if (!fpsTimer.running)
+                    fpsTimer.running = true;
+                else
+                    ++fpsTimer.frameCount;
                 inv = !inv;
             }
             color: inv ? "red" : "blue"
@@ -85,7 +94,7 @@ Item {
 
         Timer {
             id: fpsTimer
-            running: true;
+            running: false;
             repeat: true
             interval: benchmark.fpsInterval
             property int frameCount;
@@ -96,7 +105,7 @@ Item {
                 root.fps = frameCount
 
                 // Run for 5000 ms (5 seconds), then report total frames.
-                if (totalTicks++ >= 5) {
+                if (++totalTicks >= 5) {
                     benchmark.recordOperationsPerFrame(frameCount);
                     return;
                 }
