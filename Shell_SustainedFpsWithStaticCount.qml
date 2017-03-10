@@ -34,17 +34,20 @@ Item {
     height: 480
 
     Component.onCompleted: {
-        var object = benchmark.component.createObject(benchmarkRoot);
-        if (!object.hasOwnProperty("count")) {
-            print(" - error: property 'count' is lacking from: " + benchmark.input);
-            benchmark.abort();
+        var object
+        if (benchmark.count != -1) {
+            object = benchmark.component.createObject(benchmarkRoot, { count: benchmark.count });
         } else {
-            object.anchors.fill = benchmarkRoot;
-            root.targetFrameRate = benchmark.screeRefreshRate;
-            root.item = object;
-            root.item.count = benchmark.count;
-            label.updateYerself()
+            object = benchmark.component.createObject(benchmarkRoot);
+            if (!object.hasOwnProperty("count")) {
+                print(" - error: property 'count' is lacking from: " + benchmark.input);
+                benchmark.abort();
+            }
         }
+        object.anchors.fill = benchmarkRoot;
+        root.targetFrameRate = benchmark.screeRefreshRate;
+        root.item = object;
+        label.updateYerself()
     }
 
     property Item item;
