@@ -43,6 +43,10 @@ Item {
                 print(" - error: property 'count' is lacking from: " + benchmark.input);
                 benchmark.abort();
             }
+
+            if (object.hasOwnProperty("staticCount")) {
+                object.count = object.staticCount * benchmark.hardwareMultiplier
+            }
         }
         object.anchors.fill = benchmarkRoot;
         root.targetFrameRate = benchmark.screeRefreshRate;

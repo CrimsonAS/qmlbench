@@ -291,6 +291,7 @@ struct Options
         , fpsInterval(1000)
         , fpsOverride(0)
         , windowSize(800, 600)
+        , hardwareMultiplier(1.0)
     {
     }
 
@@ -306,6 +307,7 @@ struct Options
     qreal fpsOverride;
     qreal targetFps;
     QSize windowSize;
+    double hardwareMultiplier;
 };
 
 
@@ -341,6 +343,7 @@ class BenchmarkRunner : public QObject
     Q_PROPERTY(qreal fpsInterval READ fpsInterval CONSTANT)
     Q_PROPERTY(bool verbose READ verbose CONSTANT)
     Q_PROPERTY(int count READ count CONSTANT)
+    Q_PROPERTY(double hardwareMultiplier READ hardwareMultiplier CONSTANT)
 
 public:
     BenchmarkRunner();
@@ -362,6 +365,8 @@ public:
     bool verbose() const { return options.verbose; }
 
     int count() const { return options.count; }
+
+    double hardwareMultiplier() const { return options.hardwareMultiplier; }
 
 public slots:
     void recordOperationsPerFrame(qreal count);
@@ -479,10 +484,16 @@ int main(int argc, char **argv)
     parser.addOption(templateOption);
 
     QCommandLineOption countOption(QStringLiteral("count"),
-                                   QStringLiteral("Static option for use with 'static-count' shell"),
+                                   QStringLiteral("Defines how many instances to create for use with 'static-count' or 'frame-count' shell. Overrides the benchmark's 'count' and 'staticCount' properties."),
                                    QStringLiteral("count"),
                                    QStringLiteral("-1"));
     parser.addOption(countOption);
+
+    QCommandLineOption hardwareMultiplierOption(QStringLiteral("hardware-multiplier"),
+                                   QStringLiteral("Defines a multiplier to apply to the 'staticCount' options of benchmarks, so that faster (or slower) hardware can be compared with minimal modifications to benchmarks. For use with 'static-count' or 'frame-count' shell"),
+                                   QStringLiteral("hw-mul"),
+                                   QStringLiteral("1.0"));
+    parser.addOption(hardwareMultiplierOption);
 
     parser.addPositionalArgument(QStringLiteral("input"),
                                  QStringLiteral("One or more QML files or a directory of QML files to benchmark"));
@@ -517,6 +528,7 @@ int main(int argc, char **argv)
     runner.options.bmTemplate = parser.value(templateOption);
     runner.options.delayedStart = parser.value(delayOption).toInt();
     runner.options.count = parser.value(countOption).toInt();
+    runner.options.hardwareMultiplier = parser.value(hardwareMultiplierOption).toDouble();
 
     QSize size(parser.value(widthOption).toInt(),
                parser.value(heightOption).toInt());

@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.0
 Item {
     id: root;
     property int count: 20;
+    property int staticCount: 1000;
 
     property real t;
     NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
