@@ -7,6 +7,7 @@ Item {
     property size srcSize: Qt.size(cellSize, cellSize);
 
     property int count: 200
+    property int staticCount: 0
 
     Grid {
         width: root.width

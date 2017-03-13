@@ -5,6 +5,7 @@ Item {
     id: root;
     property int count: 8
     property int maxCount: 32;
+    property int staticCount: 0
 
     width: 600
     height: 600

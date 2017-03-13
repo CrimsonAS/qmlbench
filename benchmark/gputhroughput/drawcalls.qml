@@ -5,6 +5,7 @@ Item {
 
     property real cellSize: Math.floor(Math.sqrt(width * height / (count / 2)))
     property int count: 250
+    property int staticCount: 0
 
     Grid {
         width: root.width

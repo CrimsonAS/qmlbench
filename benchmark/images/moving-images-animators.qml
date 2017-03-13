@@ -5,6 +5,7 @@ Item {
 
     property int size: Math.sqrt(width * height / count);
     property int count: 500
+    property int staticCount: 20000
 
     Grid {
         width: root.width

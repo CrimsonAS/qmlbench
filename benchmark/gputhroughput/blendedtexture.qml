@@ -3,6 +3,8 @@ import QtQuick 2.0
 Item {
     id: root;
     property int count: 8;
+    property int staticCount: 0
+
     Repeater {
         model: root.count;
         Rectangle {

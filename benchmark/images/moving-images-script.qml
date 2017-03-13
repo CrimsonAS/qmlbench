@@ -5,8 +5,8 @@ Item {
 
     property int size: Math.sqrt(width * height / count);
     property string description: count + " " + size + "x" + size + " Image instances\nAnimation with JavaScript";
-
     property int count: 500
+    property int staticCount: 20000
 
     Grid {
         width: root.width

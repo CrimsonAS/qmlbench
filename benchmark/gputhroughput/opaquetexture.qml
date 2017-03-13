@@ -4,6 +4,7 @@ Item {
     id: root;
 
     property int count;
+    property int staticCount: 0
 
     Repeater {
         model: root.count;

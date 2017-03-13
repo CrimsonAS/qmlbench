@@ -3,6 +3,8 @@ import QtQuick 2.0
 Item {
     id: root;
     property int count: 1000;
+    property int staticCount: 2000
+
     property real t;
     NumberAnimation on t { from: 0; to: 1; duration: 2347; loops: Animation.Infinite }
 
