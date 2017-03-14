@@ -26,7 +26,7 @@ Item {
                     width: x + 2
                     height: y + 2
                     sourceSize: Qt.size(width, height);
-                    source: "../butterfly-wide.png"
+                    source: "../../../shared/butterfly-wide.png"
                 }
             }
         }

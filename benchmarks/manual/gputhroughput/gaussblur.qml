@@ -14,7 +14,7 @@ Item {
         id: contentRoot
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
-        source: "../grapes.jpg"
+        source: "grapes.jpg"
         Rectangle {
             color: "palegreen"
             border.color: "black"

@@ -25,7 +25,7 @@ Item {
         Image {
             x: Math.random() * (root.width - width)
             y: Math.random() * (root.height - height)
-            source: "../" + root.names[index % 3];
+            source: "../../../../shared/" + root.names[index % 3];
             width: 20
             height: 20
 
