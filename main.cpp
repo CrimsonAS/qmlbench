@@ -560,9 +560,21 @@ int main(int argc, char **argv)
         } else if (info.suffix() == QStringLiteral("qml")) {
             runner.benchmarks << Benchmark(info.absoluteFilePath());
         } else if (info.isDir()) {
+            QHash<QString, QString> basenameDuplicateCheck; // basename -> relative path
             QDirIterator iterator(input, QStringList() << QStringLiteral("*.qml"), QDir::NoFilter, QDirIterator::Subdirectories);
             while (iterator.hasNext()) {
-                runner.benchmarks << Benchmark(iterator.next());
+                QFileInfo fi(iterator.next());
+
+                if (basenameDuplicateCheck.contains(fi.baseName())) {
+                    qWarning() << "Found basename " << fi.baseName() << " in "
+                               << fi.absoluteDir().absolutePath() << "and "
+                               << basenameDuplicateCheck.value(fi.baseName());
+                    qWarning() << "Can't continue with a duplicate basename, as it might mess up results.";
+                    exit(1);
+                }
+
+                basenameDuplicateCheck[fi.baseName()] = fi.absoluteDir().absolutePath();
+                runner.benchmarks << Benchmark(fi.filePath());
             }
         }
     }
