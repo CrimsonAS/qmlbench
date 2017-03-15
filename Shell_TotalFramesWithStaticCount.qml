@@ -49,14 +49,12 @@ Item {
             }
         }
         object.anchors.fill = benchmarkRoot;
-        root.targetFrameRate = benchmark.screeRefreshRate;
         root.item = object;
-        label.updateYerself()
+        root.count = 0;
     }
 
     property Item item;
-    property real targetFrameRate;
-    property real fps: 0
+    property int count: 0
 
     Item {
         id: benchmarkRoot
@@ -64,7 +62,7 @@ Item {
         anchors.fill: parent
     }
 
-    Rectangle {
+    Item {
         id: meter
 
         clip: true
@@ -72,8 +70,6 @@ Item {
         height: 14
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-
-        color: Qt.hsla(0, 0, 1, 0.8);
 
         Rectangle {
             id: swapTest
@@ -93,7 +89,7 @@ Item {
                 else if (!fpsTimer.running)
                     fpsTimer.running = true;
                 else
-                    ++fpsTimer.frameCount;
+                    ++root.count;
                 inv = !inv;
             }
             color: inv ? "red" : "blue"
@@ -101,40 +97,11 @@ Item {
 
         Timer {
             id: fpsTimer
-            running: false;
-            repeat: true
-            interval: benchmark.fpsInterval
-            property int frameCount;
-            property int totalTicks
-
+            interval: benchmark.frameCountInterval
             onTriggered: {
-                // Update the UI so it's obviously live...
-                root.fps = frameCount
-
-                // Run for 5000 ms (5 seconds), then report total frames.
-                if (++totalTicks >= 5) {
-                    benchmark.recordOperationsPerFrame(frameCount);
-                    return;
-                }
-
-                label.updateYerself();
+                benchmark.recordOperationsPerFrame(root.count);
             }
         }
-
-        Text {
-            id: label
-            anchors.centerIn: parent
-            font.pixelSize: 10
-
-            function updateYerself() {
-                var bmName = benchmark.input;
-                var lastSlash = bmName.lastIndexOf("/");
-                if (lastSlash > 0)
-                    bmName = bmName.substr(lastSlash + 1);
-                text = bmName + "; Frames=" + root.fps + "; Count=" + item.count;
-            }
-        }
-
 
     }
 

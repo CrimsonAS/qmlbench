@@ -285,10 +285,12 @@ struct Options
     Options()
         : fullscreen(false)
         , verbose(false)
+        , useBuckets(true)
         , repeat(1)
         , maximumBuckets(10)
         , delayedStart(0)
         , count(-1)
+        , frameCountInterval(20000)
         , fpsTolerance(0.05)
         , fpsInterval(1000)
         , fpsOverride(0)
@@ -300,10 +302,12 @@ struct Options
     QString bmTemplate;
     bool fullscreen;
     bool verbose;
+    bool useBuckets;
     int repeat;
     int maximumBuckets;
     int delayedStart;
     int count;
+    int frameCountInterval;
     qreal fpsTolerance;
     qreal fpsInterval;
     qreal fpsOverride;
@@ -346,6 +350,7 @@ class BenchmarkRunner : public QObject
     Q_PROPERTY(bool verbose READ verbose CONSTANT)
     Q_PROPERTY(int count READ count CONSTANT)
     Q_PROPERTY(double hardwareMultiplier READ hardwareMultiplier CONSTANT)
+    Q_PROPERTY(int frameCountInterval READ frameCountInterval CONSTANT)
 
 public:
     BenchmarkRunner();
@@ -363,6 +368,8 @@ public:
 
     qreal fpsTolerance() const { return options.fpsTolerance / 100.0; }
     qreal fpsInterval() const { return options.fpsInterval; }
+
+    int frameCountInterval() const { return options.frameCountInterval; }
 
     bool verbose() const { return options.verbose; }
 
@@ -491,6 +498,12 @@ int main(int argc, char **argv)
                                    QStringLiteral("-1"));
     parser.addOption(countOption);
 
+    QCommandLineOption frameCountInterval(QStringLiteral("framecount-interval"),
+                                          QStringLiteral("Sets the interval used to count frames in milliseconds. Only applicable to 'frame-count' shell."),
+                                          QStringLiteral("count"),
+                                          QStringLiteral("20000"));
+    parser.addOption(frameCountInterval);
+
     QCommandLineOption hardwareMultiplierOption(QStringLiteral("hardware-multiplier"),
                                    QStringLiteral("Defines a multiplier to apply to the 'staticCount' options of benchmarks, so that faster (or slower) hardware can be compared with minimal modifications to benchmarks. For use with 'static-count' or 'frame-count' shell"),
                                    QStringLiteral("hw-mul"),
@@ -531,6 +544,7 @@ int main(int argc, char **argv)
     runner.options.delayedStart = parser.value(delayOption).toInt();
     runner.options.count = parser.value(countOption).toInt();
     runner.options.hardwareMultiplier = parser.value(hardwareMultiplierOption).toDouble();
+    runner.options.frameCountInterval = parser.value(frameCountInterval).toInt();
 
     QSize size(parser.value(widthOption).toInt(),
                parser.value(heightOption).toInt());
@@ -551,6 +565,7 @@ int main(int argc, char **argv)
     else if (runner.options.bmTemplate == QStringLiteral("frame-count")) {
         ResultRecorder::opsAreActuallyFrames = true;
         runner.options.bmTemplate = QStringLiteral("qrc:/Shell_TotalFramesWithStaticCount.qml");
+        runner.options.useBuckets = false;
     }
     else
         runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
@@ -710,22 +725,28 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
 
     QList<qreal> bucket;
-    for (QHash<qreal, QList<qreal> >::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
-        qreal avg = it.key();
-        qreal dev = qFuzzyIsNull(avg) ? 0.0 : qAbs(ops - avg) / avg;
-        if (dev < 0.05) {
-            bucket = it.value();
-            bm.averageBuckets.erase(it);
-            break;
+    if (options.useBuckets) {
+        for (QHash<qreal, QList<qreal> >::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
+            qreal avg = it.key();
+            qreal dev = qFuzzyIsNull(avg) ? 0.0 : qAbs(ops - avg) / avg;
+            if (dev < 0.05) {
+                bucket = it.value();
+                bm.averageBuckets.erase(it);
+                break;
+            }
         }
+        bucket.append(ops);
+    } else {
+        bucket = bm.operationsPerFrame;
     }
-    bucket.append(ops);
 
     qreal avg = 0;
     foreach (qreal r, bucket)
         avg += r;
     avg /= bucket.size();
-    bm.averageBuckets.insert(avg, bucket);
+
+    if (options.useBuckets)
+        bm.averageBuckets.insert(avg, bucket);
 
     if (bucket.size() >= options.repeat || bm.averageBuckets.size() >= options.maximumBuckets) {
         qreal stddevGlobal = stddev(avg, bm.operationsPerFrame);
@@ -744,11 +765,18 @@ void BenchmarkRunner::complete()
     m_component->deleteLater();
     m_component = 0;
 
-    int biggestBucket = 0;
-    foreach (const QList<qreal> &bucket, benchmarks[m_currentBenchmark].averageBuckets)
-        biggestBucket = qMax(biggestBucket, bucket.size());
+    bool restart = false;
 
-    if (biggestBucket < options.repeat)
+    if (options.useBuckets) {
+        int biggestBucket = 0;
+        foreach (const QList<qreal> &bucket, benchmarks[m_currentBenchmark].averageBuckets)
+            biggestBucket = qMax(biggestBucket, bucket.size());
+        restart = biggestBucket < options.repeat;
+    } else {
+        restart = benchmarks[m_currentBenchmark].operationsPerFrame.size() < options.repeat;
+    }
+
+    if (restart)
         QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
     else
         QMetaObject::invokeMethod(this, "maybeStartNext", Qt::QueuedConnection);
