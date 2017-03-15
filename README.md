@@ -48,7 +48,7 @@ possible while hitting a perfect framerate. So the first goal is to verify
 that your system is capable of hitting a perfect framerate at all. This is
 called the swap test. Test it by running the following, and observing the screen:
 
-> ./qmlbench --decide-fps
+> ./tools/decidefps/decidefps
 
 If you see a pulsating purple rectangle you are in good shape. If you see
 flashes of red and/or blue or if the purple rectangle has horizontal regions
@@ -83,7 +83,8 @@ disabled.
 
 It comes with a number of default settings which aim to help give stable numbers:
 
-- --fps-override: This one is potentially very important. When you ran qmlbench with --decide-fps, it told you a fairly accurate FPS. If QScreen reports something different through refreshRate() the calibration won't work and the resulting numbers won't mean anything. On OSX, we should be mostly good. On Linux, it is not uncommon that the QScreen value is wrong so this option is needed as an override to make the tests stable. The tool has not been tested on Windows at the time when this is written.
+- --fps-override: This one is potentially very important. When you ran decidefps,
+it told you a fairly accurate FPS. If QScreen reports something different through refreshRate() the calibration won't work and the resulting numbers won't mean anything. On OSX, we should be mostly good. On Linux, it is not uncommon that the QScreen value is wrong so this option is needed as an override to make the tests stable. The tool has not been tested on Windows at the time when this is written.
 - --delay [ms]: defaults to 2 seconds. An idle time after showing the window before starting the benchmark. Especially useful on OSX where the system specific to-fullscreen animation takes a while. And that to-fullscreen will severly damage the benchmarks
 - --help: Tells you the other options..
 

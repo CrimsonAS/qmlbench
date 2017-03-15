@@ -185,101 +185,6 @@ public:
 QVariantMap ResultRecorder::m_results;
 bool ResultRecorder::opsAreActuallyFrames = false;
 
-class FpsDecider : public QWindow
-{
-public:
-    FpsDecider()
-        : gl(0)
-        , frameCount(0)
-    {
-        setSurfaceType(OpenGLSurface);
-        QSurfaceFormat format;
-#if QT_VERSION >= 0x050300
-        format.setSwapInterval(1);
-#endif
-        setFormat(format);
-    }
-
-    void exposeEvent(QExposeEvent *) {
-        if (isExposed())
-            render();
-    }
-
-    bool event(QEvent *e)
-    {
-        if (e->type() == QEvent::UpdateRequest) {
-            render();
-            return true;
-        }
-        return QWindow::event(e);
-    }
-
-    void render()
-    {
-        if (!gl) {
-            gl = new QOpenGLContext();
-            gl->setFormat(format());
-            gl->create();
-            timer.start();
-        }
-
-        gl->makeCurrent(this);
-        QOpenGLFunctions *func = gl->functions();
-
-        if (frameCount == 0) {
-#if QT_VERSION >= 0x050300
-            std::cout << "GL_VENDOR:   " << (const char *) func->glGetString(GL_VENDOR) << std::endl;
-            std::cout << "GL_RENDERER: " << (const char *) func->glGetString(GL_RENDERER) << std::endl;
-            std::cout << "GL_VERSION:  " << (const char *) func->glGetString(GL_VERSION) << std::endl;
-#else
-            Q_UNUSED(func);
-            std::cout << "GL_VENDOR:   " << (const char *) glGetString(GL_VENDOR) << std::endl;
-            std::cout << "GL_RENDERER: " << (const char *) glGetString(GL_RENDERER) << std::endl;
-            std::cout << "GL_VERSION:  " << (const char *) glGetString(GL_VERSION) << std::endl;
-#endif
-        }
-
-        ++frameCount;
-        int c = frameCount % 2;
-
-#if QT_VERSION >= 0x050300
-        func->glClearColor(c, 0, 1 - c, 1);
-        func->glClear(GL_COLOR_BUFFER_BIT);
-#else
-        glClearColor(c, 0, 1 - c, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-#endif
-
-        gl->swapBuffers(this);
-
-        int time = timer.elapsed();
-        if (time > 5000) {
-            qreal msPerFrame = time / float(frameCount);
-            qreal screenRate = 1000.0 / screen()->refreshRate();
-            std::cout << std::endl
-                     << "FPS: " << frameCount * 1000 / float(time)
-                     << " -- " << frameCount << " frames in " << time << "ms; "
-                     <<  msPerFrame << " ms/frame"
-                     << "; QScreen says: " << screenRate << std::endl;
-            if (qAbs(screenRate - msPerFrame) > msPerFrame * 0.1)
-                std::cout << " (not accurate, run benchmarks with '--fps-override " << int(1000/msPerFrame) << "')" << std::endl << std::endl;
-            else
-                std::cout << std::endl << "That should be close enough :)" << std::endl << std::endl;
-            exit(0);
-
-        } else {
-            QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
-        }
-    }
-
-private:
-    QOpenGLContext *gl;
-    QElapsedTimer timer;
-    int frameCount;
-};
-
-
-
 struct Options
 {
     Options()
@@ -426,9 +331,6 @@ int main(int argc, char **argv)
 
 	QCommandLineParser parser;
 
-    QCommandLineOption decideFpsOption(QStringLiteral("decide-fps"), QStringLiteral("Run a simple test to decide the frame rate of the primary screen"));
-    parser.addOption(decideFpsOption);
-
     QCommandLineOption verboseOption(QStringList() << QStringLiteral("v") << QStringLiteral("verbose"),
                                      QStringLiteral("Verbose mode"));
     parser.addOption(verboseOption);
@@ -518,16 +420,6 @@ int main(int argc, char **argv)
 
     if (parser.isSet(jsonOption)) {
         onlyPrintJson = true;
-    }
-
-    if (parser.isSet(decideFpsOption)) {
-        FpsDecider fpsDecider;
-        if (parser.isSet(fullscreenOption))
-            fpsDecider.showFullScreen();
-        else
-            fpsDecider.show();
-        fpsDecider.raise();
-        return app.exec();
     }
 
     if (parser.isSet(helpOption) || parser.positionalArguments().size() == 0) {

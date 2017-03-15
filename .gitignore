@@ -3,6 +3,7 @@
 *.moc
 moc_predefs.h
 qrc_qmlbench.cpp
-qmlbench
+src/qmlbench
+tools/decidefps/decidefps
 .qmake.stash
 Makefile
