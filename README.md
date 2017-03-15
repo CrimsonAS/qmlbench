@@ -1,24 +1,83 @@
-#qmlbench
+# qmlbench
 
-qmlbench provides a set of simple benchmarks which aim to find how many times a certain operation can be performed per frame while still sustaining a perfect velvet framerate.
+qmlbench is a tool for benchmarking Qt, QML and QtQuick as a whole stack rather
+than in isolation. The benchmarks it provides exercise a very large part of
+Quick, QML, Gui, Core, and as a result can be considered a decent metric for
+overall Qt performance.
 
-You can also view it as a test of: *How much stuff can I do before things start to fall apart.*
+As with any benchmarking, if you want reliable results, the first thing you must
+attend to is ensuring that the system under test is doing the absolute minimum
+possible. "Typical" operating systems (OS X, Ubuntu, ...) all have a lot of
+"background noise" in the form of file indexing, automatic updates. All of this
+should be disabled if possible. You may want to consider disabling networking
+for the duration of the benchmarking run to help keep things "quiet".
 
-The benchmarks excersice a very large part of the Qt Quick / QML / Qt Gui / Qt Core stack and can in many ways be considered a decent metric for overall Qt performance.
+In terms of running applications, you should have the bare minimum if at all
+possible. No email clients, no IRC, no media players. Only your terminal, and
+qmlbench should be running. If possible (e.g. on Linux), you may want to even
+look into setting up a custom desktop environment session that doesn't launch
+anything else (so no gnome-session etc).
 
-##before you start
+Remember: Any background process that might pop up will cause instability in
+the results!
 
-As already mentioned, the goal is to find how much is possible while hitting a perfect framerate. So the first goal is to verify that your system is capable of hitting a perfect framerate at all. This is called the swap test. Test it by running:
+# shells
+
+qmlbench provides a number of "shells", which are the contaners for the
+benchmarking logic. Different shells work in different ways, and might measure
+different things.
+
+## sustained-fps shell
+
+The sustained-fps shell provides a measure of how many times a certain operation
+can be performed per frame while sustaining a velvet smooth framerate matching the
+host's screen refresh rate.
+
+Summarized, it can be looked at as a test of:
+*How much stuff can I do before things start to fall apart.*.
+
+Note that the sustained-fps shell _requires_ a stable frame rate (see the
+prerequisites section), which is often hard for systems to provide, so this
+shell may not be a good choice for you, and may not be appropriate for automated
+regression testing.
+
+### prerequisites
+
+As already mentioned, the goal of the sustained-fps shell is to find how much is
+possible while hitting a perfect framerate. So the first goal is to verify
+that your system is capable of hitting a perfect framerate at all. This is
+called the swap test. Test it by running the following, and observing the screen:
 
 > ./qmlbench --decide-fps
 
-and observe. If you see a pulsating purple rectangle you are in good shape. If you see flashes of red and/or blue or if the purple rectangle has horizontal regions of red and blue, your system is not able to hit a perfect framerate. 
+If you see a pulsating purple rectangle you are in good shape. If you see
+flashes of red and/or blue or if the purple rectangle has horizontal regions
+of red and blue, your system is not able to hit a perfect framerate.
 
-Fix that first.
+Fix that first, or you will not get stable/sensible results from the
+sustained-fps shell.
 
-The second thing one needs to do is to kill absolutely every running thing on the computer. Webbrowser typically suck a lot of juice at random points in time. Same with mail clients, irc clients, media players, etc. When you benchmark, run only your terminal and the benchmarking application. Disable system wide file indexing in your OS, etc.. Any background process that might pop up will cause instability in the results. 
+Lastly, check if your system is running with the 'basic' render loop
+(QSG_INFO=1 in the environment will tell you). If you are, you will most likely
+not be able to get velvet FPS because the animations are timer driven and will
+skip once or twice per frame by default. If threaded is not an option for
+whatever reason, try with QSG_RENDER_LOOP=windows (which uses vsync driven
+animations).
 
-The third thing is that if your system is running with the 'basic' render loop (QSG_INFO=1 in the environment will tell you), you will most likely not be able to get velvet FPS because the animations are timer driven and will skip once or twice per frame by default. If threaded is not an option for whatever reason, try with QSG_RENDER_LOOP=windows (which uses vsync driven animations)
+## static-count shell
+
+The static-count shell constantly performs a set number of operations (the
+staticCount property in benchmarks) each frame. It is useful for profiling.
+
+You can override the staticCount value by passing a `--count N` command line
+argument, where N is the staticCount you want to use instead.
+
+## frame-count shell
+
+The frame-count shell constantly performs a set number of operations each frame,
+for a given amount of (real world) time, and counts the number of frames the
+window is able to generate. If the GL drivers & OS support it, vsync will be
+disabled.
 
 ##the qmlbench tool
 
@@ -27,6 +86,8 @@ It comes with a number of default settings which aim to help give stable numbers
 - --fps-override: This one is potentially very important. When you ran qmlbench with --decide-fps, it told you a fairly accurate FPS. If QScreen reports something different through refreshRate() the calibration won't work and the resulting numbers won't mean anything. On OSX, we should be mostly good. On Linux, it is not uncommon that the QScreen value is wrong so this option is needed as an override to make the tests stable. The tool has not been tested on Windows at the time when this is written.
 - --delay [ms]: defaults to 2 seconds. An idle time after showing the window before starting the benchmark. Especially useful on OSX where the system specific to-fullscreen animation takes a while. And that to-fullscreen will severly damage the benchmarks
 - --help: Tells you the other options..
+
+TODO describe --hardware-multiplier, --count...
 
 ##the actual benchmarks
 
@@ -77,11 +138,6 @@ The following three benchmarks give an indication of how many animated items can
 - moving-images-script.qml
 
 One quirk if you run these is that on a threaded renderloop, the animation one runs faster than animators. This is because the work is broken into two major chunks. One is doing the animation while the other is doing the batching in the renderer and scheduling the rendering. If those happen on separate threads, we get better parallelization so 'animation' comes out better. However, if you try again with QSG_RENDER_LOOP=windows in the environment, you'll see that if it all happens on the same thread, then animators are a bit cheaper (because they are simpler)
-
-- sprite-image.qml
-- sprite-sequence.qml
-
-These two benchmarks are created to illustrate why SpriteSequence should not be used for Sprite based games and serve as a benchmark for whoever steps up to improve it.
 
 ### benchmarks/changes
 
