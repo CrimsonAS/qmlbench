@@ -560,7 +560,7 @@ int main(int argc, char **argv)
         } else if (info.suffix() == QStringLiteral("qml")) {
             runner.benchmarks << Benchmark(info.absoluteFilePath());
         } else if (info.isDir()) {
-            QDirIterator iterator(input, QStringList() << QStringLiteral("*.qml"));
+            QDirIterator iterator(input, QStringList() << QStringLiteral("*.qml"), QDir::NoFilter, QDirIterator::Subdirectories);
             while (iterator.hasNext()) {
                 runner.benchmarks << Benchmark(iterator.next());
             }
