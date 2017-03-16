@@ -42,8 +42,11 @@ class ResultRecorder
     static QVariantMap m_results;
 
 public:
-    static void startResults(const QString &id)
+    static void startResults(const QString &id, bool isSubProcess)
     {
+        if (isSubProcess)
+            return; // parent process will get all this.
+
         m_results["id"] = id;
 
         QString prettyProductName =
@@ -169,6 +172,11 @@ public:
         }
 
         m_results[benchmark] = benchMap;
+    }
+
+    static void mergeResults(const QString &benchmark, const QJsonObject &o)
+    {
+        m_results[benchmark] = o.toVariantMap();
     }
 
     static void finish()
@@ -329,7 +337,11 @@ int main(int argc, char **argv)
 
     QGuiApplication app(argc, argv);
 
-	QCommandLineParser parser;
+    QCommandLineParser parser;
+
+    QCommandLineOption subprocessOption("silently-really-run-and-bypass-subprocess");
+    subprocessOption.setFlags(subprocessOption.flags() | QCommandLineOption::HiddenFromHelp);
+    parser.addOption(subprocessOption);
 
     QCommandLineOption verboseOption(QStringList() << QStringLiteral("v") << QStringLiteral("verbose"),
                                      QStringLiteral("Verbose mode"));
@@ -418,6 +430,8 @@ int main(int argc, char **argv)
 
     parser.process(app);
 
+    bool isSubProcess = parser.isSet(subprocessOption);
+
     if (parser.isSet(jsonOption)) {
         onlyPrintJson = true;
     }
@@ -444,7 +458,7 @@ int main(int argc, char **argv)
     if (size.isValid())
         runner.options.windowSize = size;
 
-    ResultRecorder::startResults(parser.value(idOption));
+    ResultRecorder::startResults(parser.value(idOption), isSubProcess);
     ResultRecorder::recordWindowSize(runner.options.windowSize);
 
     if (parser.isSet(fpsOverrideOption))
@@ -488,7 +502,7 @@ int main(int argc, char **argv)
         }
     }
 
-    if (runner.options.verbose) {
+    if (runner.options.verbose && !isSubProcess) {
         std::cout << "Frame Rate .........: " << (runner.options.fpsOverride > 0 ? runner.options.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
         std::cout << "Fullscreen .........: " << (runner.options.fullscreen ? "yes" : "no") << std::endl;
         std::cout << "Fullscreen .........: " << (runner.options.fullscreen ? "yes" : "no") << std::endl;
@@ -503,10 +517,85 @@ int main(int argc, char **argv)
         }
     }
 
-    if (!runner.execute())
-        return 0;
+    int ret = 0;
 
-    int ret = app.exec();
+    // qmlbench works as a split process mode. The parent process
+    // (!isSubProcess) proxies a bunch of child processes that actually do the
+    // work, and report output back to the parent. This keeps the benchmark
+    // environment fairly clean.
+    if (!isSubProcess) {
+        QStringList sanitizedArgs;
+        QStringList positionalArgs = parser.positionalArguments();
+
+        // The magic sauce
+        sanitizedArgs.append("--silently-really-run-and-bypass-subprocess");
+
+        // Add everything that was not a file/dir
+        for (const QString &arg : qApp->arguments()) {
+            if (!positionalArgs.contains(arg) && arg != argv[0])
+                sanitizedArgs.append(arg);
+        }
+
+        for (const Benchmark &b : runner.benchmarks) {
+            QStringList sanitizedArgCopy = sanitizedArgs;
+            sanitizedArgCopy.append(b.fileName);
+
+            QProcess *p = new QProcess;
+            QObject::connect(p, &QProcess::readyReadStandardError, p, [&]() {
+                QStringList lines = QString::fromLatin1(p->readAllStandardError()).split("\n");
+                for (const QString &ln : lines) {
+                    if (!ln.isEmpty())
+                        std::cerr << "SUB: " << ln.toLocal8Bit().constData() << "\n";
+                }
+            });
+
+            QByteArray jsonOutput;
+
+            QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
+                QStringList lines = QString::fromLatin1(p->readAllStandardOutput()).split("\n");
+                for (const QString &ln : lines) {
+                    if (!onlyPrintJson) {
+                        if (!ln.isEmpty())
+                            std::cout << "SUB: " << ln.toLocal8Bit().constData() << "\n";
+                    } else {
+                        jsonOutput += ln.toUtf8();
+                    }
+                }
+            });
+
+            p->start(argv[0], sanitizedArgCopy);
+            p->waitForFinished(-1);
+            delete p;
+
+            if (onlyPrintJson) {
+                // Turn stdout into a JSON object and merge our results into the
+                // final ones.
+                QJsonParseError jerr;
+                QJsonDocument d = QJsonDocument::fromJson(jsonOutput, &jerr);
+                if (d.isNull()) {
+                    qWarning() << "Can't parse JSON for result for " << b.fileName;
+                    qWarning() << "Error: " << jerr.errorString();
+                } else {
+                    QJsonObject o = d.object();
+
+                    /* skip the "wrapper" object, as mergeResults
+                     * will create a new one itself.
+                     */
+                    o = o.begin()->toObject();
+                    ResultRecorder::mergeResults(b.fileName, o);
+                }
+            }
+        }
+
+        ret = 0;
+    } else {
+        // Subprocess mode... Simple :)
+        if (!runner.execute())
+            return 0;
+
+        ret = app.exec();
+    }
+
     ResultRecorder::finish();
     return ret;
 }
