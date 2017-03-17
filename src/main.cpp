@@ -270,35 +270,8 @@ private:
     QQmlComponent *m_component;
 };
 
-
-
-int main(int argc, char **argv)
+QStringList processCommandLineArguments(const QGuiApplication &app, BenchmarkRunner &runner)
 {
-    // We need to do this early on, so there's no interference from the shared
-    // GL context.
-    bool expectingShell = false;
-    for (int i = 0; i < argc; ++i) {
-        if (strcmp(argv[i], "--shell")) {
-            expectingShell = true;
-        } else if (expectingShell && strcmp(argv[i], "frame-count") == 0) {
-            QSurfaceFormat format = QSurfaceFormat::defaultFormat();
-#if QT_VERSION >= 0x050300
-            format.setSwapInterval(0);
-#else
-            fprintf(stderr, "Cannot disable swap interval on this Qt version, frame-count shell won't work properly!\n");
-            ::exit(1);
-#endif
-            QSurfaceFormat::setDefaultFormat(format);
-        } else {
-            expectingShell = false;
-        }
-    }
-
-
-    qmlRegisterType<QQuickView>();
-
-    QGuiApplication app(argc, argv);
-
     QCommandLineParser parser;
 
     QCommandLineOption subprocessOption("silently-really-run-and-bypass-subprocess");
@@ -402,7 +375,6 @@ int main(int argc, char **argv)
         parser.showHelp(0);
     }
 
-    BenchmarkRunner runner;
     Options::instance.id = parser.value(idOption);
     Options::instance.verbose = parser.isSet(verboseOption);
     Options::instance.fullscreen = parser.isSet(fullscreenOption);
@@ -465,6 +437,42 @@ int main(int argc, char **argv)
         }
     }
 
+    return parser.positionalArguments();
+}
+
+void setupDefaultSurfaceFormat(int argc, char **argv)
+{
+    bool expectingShell = false;
+    for (int i = 0; i < argc; ++i) {
+        if (strcmp(argv[i], "--shell")) {
+            expectingShell = true;
+        } else if (expectingShell && strcmp(argv[i], "frame-count") == 0) {
+            QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+#if QT_VERSION >= 0x050300
+            format.setSwapInterval(0);
+#else
+            fprintf(stderr, "Cannot disable swap interval on this Qt version, frame-count shell won't work properly!\n");
+            ::exit(1);
+#endif
+            QSurfaceFormat::setDefaultFormat(format);
+        } else {
+            expectingShell = false;
+        }
+    }
+}
+
+int main(int argc, char **argv)
+{
+    // We need to do this early on, so there's no interference from the shared
+    // GL context.
+    setupDefaultSurfaceFormat(argc, argv);
+
+    qmlRegisterType<QQuickView>();
+
+    QGuiApplication app(argc, argv);
+    BenchmarkRunner runner;
+    QStringList positionalArgs = processCommandLineArguments(app, runner);
+
     if (Options::instance.verbose && !Options::instance.isSubProcess) {
         std::cout << "Frame Rate .........: " << (Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
@@ -488,7 +496,6 @@ int main(int argc, char **argv)
     // environment fairly clean.
     if (!Options::instance.isSubProcess) {
         QStringList sanitizedArgs;
-        QStringList positionalArgs = parser.positionalArguments();
 
         // The magic sauce
         sanitizedArgs.append("--silently-really-run-and-bypass-subprocess");
