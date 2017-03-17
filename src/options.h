@@ -38,6 +38,7 @@ struct Options
         : fullscreen(false)
         , verbose(false)
         , useBuckets(true)
+        , onlyPrintJson(false)
         , repeat(1)
         , maximumBuckets(10)
         , delayedStart(0)
@@ -55,6 +56,7 @@ struct Options
     bool fullscreen;
     bool verbose;
     bool useBuckets;
+    bool onlyPrintJson;
     int repeat;
     int maximumBuckets;
     int delayedStart;

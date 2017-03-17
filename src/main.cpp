@@ -36,7 +36,6 @@
 #include "options.h"
 #include "qcommandlineparser.h"
 
-static bool onlyPrintJson = false;
 Options Options::instance;
 
 class ResultRecorder
@@ -104,7 +103,7 @@ public:
         const char *version = (const char *) glGetString(GL_VERSION);
 #endif
 
-        if (!onlyPrintJson) {
+        if (!Options::instance.onlyPrintJson) {
             std::cout << "ID:          " << id.toStdString() << std::endl;
             std::cout << "OS:          " << prettyProductName.toStdString() << std::endl;
             std::cout << "QPA:         " << QGuiApplication::platformName().toStdString() << std::endl;
@@ -137,7 +136,7 @@ public:
         benchMap["results"] = benchResults;
         m_results[benchmark] = benchMap;
 
-        if (!onlyPrintJson) {
+        if (!Options::instance.onlyPrintJson) {
             if (opsAreActuallyFrames)
                 std::cout << "    " << ops << " frames" << std::endl;
             else
@@ -157,7 +156,7 @@ public:
         benchMap["standard-deviation-all-samples"] = stddevAll;
         benchMap["median"] = median;
 
-        if (!onlyPrintJson) {
+        if (!Options::instance.onlyPrintJson) {
             std::string opsString;
             if (opsAreActuallyFrames)
                 opsString = " frames";
@@ -183,7 +182,7 @@ public:
 
     static void finish()
     {
-        if (onlyPrintJson) {
+        if (Options::instance.onlyPrintJson) {
             QJsonDocument results = QJsonDocument::fromVariant(m_results);
             std::cout << results.toJson().constData();
         }
@@ -194,44 +193,6 @@ public:
 };
 QVariantMap ResultRecorder::m_results;
 bool ResultRecorder::opsAreActuallyFrames = false;
-
-struct Options
-{
-    Options()
-        : fullscreen(false)
-        , verbose(false)
-        , useBuckets(true)
-        , repeat(1)
-        , maximumBuckets(10)
-        , delayedStart(0)
-        , count(-1)
-        , frameCountInterval(20000)
-        , fpsTolerance(0.05)
-        , fpsInterval(1000)
-        , fpsOverride(0)
-        , windowSize(800, 600)
-        , hardwareMultiplier(1.0)
-    {
-    }
-
-    QString bmTemplate;
-    bool fullscreen;
-    bool verbose;
-    bool useBuckets;
-    int repeat;
-    int maximumBuckets;
-    int delayedStart;
-    int count;
-    int frameCountInterval;
-    qreal fpsTolerance;
-    qreal fpsInterval;
-    qreal fpsOverride;
-    qreal targetFps;
-    QSize windowSize;
-    double hardwareMultiplier;
-};
-
-
 
 struct Benchmark
 {
@@ -274,23 +235,22 @@ public:
     bool execute();
 
     QList<Benchmark> benchmarks;
-    Options options;
 
     QQuickView *view() const { return m_view; }
     QQmlComponent *component() const { return m_component; }
-    qreal screenRefreshRate() const { return options.fpsOverride > 0 ? options.fpsOverride : m_view->screen()->refreshRate(); }
+    qreal screenRefreshRate() const { return Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : m_view->screen()->refreshRate(); }
     QString input() const { return benchmarks[m_currentBenchmark].fileName; }
 
-    qreal fpsTolerance() const { return options.fpsTolerance / 100.0; }
-    qreal fpsInterval() const { return options.fpsInterval; }
+    qreal fpsTolerance() const { return Options::instance.fpsTolerance / 100.0; }
+    qreal fpsInterval() const { return Options::instance.fpsInterval; }
 
-    int frameCountInterval() const { return options.frameCountInterval; }
+    int frameCountInterval() const { return Options::instance.frameCountInterval; }
 
-    bool verbose() const { return options.verbose; }
+    bool verbose() const { return Options::instance.verbose; }
 
-    int count() const { return options.count; }
+    int count() const { return Options::instance.count; }
 
-    double hardwareMultiplier() const { return options.hardwareMultiplier; }
+    double hardwareMultiplier() const { return Options::instance.hardwareMultiplier; }
 
 public slots:
     void recordOperationsPerFrame(qreal count);
@@ -435,7 +395,7 @@ int main(int argc, char **argv)
     bool isSubProcess = parser.isSet(subprocessOption);
 
     if (parser.isSet(jsonOption)) {
-        onlyPrintJson = true;
+        Options::instance.onlyPrintJson = true;
     }
 
     if (parser.isSet(helpOption) || parser.positionalArguments().size() == 0) {
@@ -443,40 +403,40 @@ int main(int argc, char **argv)
     }
 
     BenchmarkRunner runner;
-    runner.options.verbose = parser.isSet(verboseOption);
-    runner.options.fullscreen = parser.isSet(fullscreenOption);
-    runner.options.repeat = qMax<int>(1, parser.value(repeatOption).toInt());
-    runner.options.fpsInterval = qMax<qreal>(500, parser.value(fpsIntervalOption).toFloat());
-    runner.options.fpsTolerance = qMax<qreal>(1, parser.value(fpsToleranceOption).toFloat());
-    runner.options.bmTemplate = parser.value(templateOption);
-    runner.options.delayedStart = parser.value(delayOption).toInt();
-    runner.options.count = parser.value(countOption).toInt();
-    runner.options.hardwareMultiplier = parser.value(hardwareMultiplierOption).toDouble();
-    runner.options.frameCountInterval = parser.value(frameCountInterval).toInt();
+    Options::instance.verbose = parser.isSet(verboseOption);
+    Options::instance.fullscreen = parser.isSet(fullscreenOption);
+    Options::instance.repeat = qMax<int>(1, parser.value(repeatOption).toInt());
+    Options::instance.fpsInterval = qMax<qreal>(500, parser.value(fpsIntervalOption).toFloat());
+    Options::instance.fpsTolerance = qMax<qreal>(1, parser.value(fpsToleranceOption).toFloat());
+    Options::instance.bmTemplate = parser.value(templateOption);
+    Options::instance.delayedStart = parser.value(delayOption).toInt();
+    Options::instance.count = parser.value(countOption).toInt();
+    Options::instance.hardwareMultiplier = parser.value(hardwareMultiplierOption).toDouble();
+    Options::instance.frameCountInterval = parser.value(frameCountInterval).toInt();
 
     QSize size(parser.value(widthOption).toInt(),
                parser.value(heightOption).toInt());
 
     if (size.isValid())
-        runner.options.windowSize = size;
+        Options::instance.windowSize = size;
 
     ResultRecorder::startResults(parser.value(idOption), isSubProcess);
-    ResultRecorder::recordWindowSize(runner.options.windowSize);
+    ResultRecorder::recordWindowSize(Options::instance.windowSize);
 
     if (parser.isSet(fpsOverrideOption))
-        runner.options.fpsOverride = parser.value(fpsOverrideOption).toFloat();
+        Options::instance.fpsOverride = parser.value(fpsOverrideOption).toFloat();
 
-    if (runner.options.bmTemplate == QStringLiteral("sustained-fps"))
-        runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
-    else if (runner.options.bmTemplate == QStringLiteral("static-count"))
-        runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithStaticCount.qml");
-    else if (runner.options.bmTemplate == QStringLiteral("frame-count")) {
+    if (Options::instance.bmTemplate == QStringLiteral("sustained-fps"))
+        Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
+    else if (Options::instance.bmTemplate == QStringLiteral("static-count"))
+        Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithStaticCount.qml");
+    else if (Options::instance.bmTemplate == QStringLiteral("frame-count")) {
         ResultRecorder::opsAreActuallyFrames = true;
-        runner.options.bmTemplate = QStringLiteral("qrc:/Shell_TotalFramesWithStaticCount.qml");
-        runner.options.useBuckets = false;
+        Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_TotalFramesWithStaticCount.qml");
+        Options::instance.useBuckets = false;
     }
     else
-        runner.options.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
+        Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
 
     foreach (QString input, parser.positionalArguments()) {
         QFileInfo info(input);
@@ -504,15 +464,15 @@ int main(int argc, char **argv)
         }
     }
 
-    if (runner.options.verbose && !isSubProcess) {
-        std::cout << "Frame Rate .........: " << (runner.options.fpsOverride > 0 ? runner.options.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
-        std::cout << "Fullscreen .........: " << (runner.options.fullscreen ? "yes" : "no") << std::endl;
-        std::cout << "Fullscreen .........: " << (runner.options.fullscreen ? "yes" : "no") << std::endl;
-        std::cout << "Fps Interval .......: " << runner.options.fpsInterval << std::endl;
-        std::cout << "Fps Tolerance ......: " << runner.options.fpsTolerance << std::endl;
-        std::cout << "Repetitions ........: " << runner.options.repeat;
+    if (Options::instance.verbose && !isSubProcess) {
+        std::cout << "Frame Rate .........: " << (Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
+        std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
+        std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
+        std::cout << "Fps Interval .......: " << Options::instance.fpsInterval << std::endl;
+        std::cout << "Fps Tolerance ......: " << Options::instance.fpsTolerance << std::endl;
+        std::cout << "Repetitions ........: " << Options::instance.repeat;
         std::cout << std::endl;
-        std::cout << "Template ...........: " << runner.options.bmTemplate.toStdString() << std::endl;
+        std::cout << "Template ...........: " << Options::instance.bmTemplate.toStdString() << std::endl;
         std::cout << "Benchmarks:" << std::endl;
         foreach (const Benchmark &b, runner.benchmarks) {
             std::cout << " - " << b.fileName.toStdString() << std::endl;
@@ -556,7 +516,7 @@ int main(int argc, char **argv)
             QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
                 QStringList lines = QString::fromLatin1(p->readAllStandardOutput()).split("\n");
                 for (const QString &ln : lines) {
-                    if (!onlyPrintJson) {
+                    if (!Options::instance.onlyPrintJson) {
                         if (!ln.isEmpty())
                             std::cout << "SUB: " << ln.toLocal8Bit().constData() << "\n";
                     } else {
@@ -569,7 +529,7 @@ int main(int argc, char **argv)
             p->waitForFinished(-1);
             delete p;
 
-            if (onlyPrintJson) {
+            if (Options::instance.onlyPrintJson) {
                 // Turn stdout into a JSON object and merge our results into the
                 // final ones.
                 QJsonParseError jerr;
@@ -618,7 +578,7 @@ bool BenchmarkRunner::execute()
     m_currentBenchmark = 0;
     if (benchmarks.size() == 0)
         return false;
-    QTimer::singleShot(options.delayedStart, this, SLOT(start()));
+    QTimer::singleShot(Options::instance.delayedStart, this, SLOT(start()));
 
     m_view = new QQuickView();
     // Make sure proper fullscreen is possible on OSX
@@ -631,9 +591,9 @@ bool BenchmarkRunner::execute()
     m_view->setResizeMode(QQuickView::SizeRootObjectToView);
     m_view->rootContext()->setContextProperty("benchmark", this);
 
-    m_view->resize(options.windowSize);
+    m_view->resize(Options::instance.windowSize);
 
-    if (options.fullscreen)
+    if (Options::instance.fullscreen)
         m_view->showFullScreen();
     else
         m_view->show();
@@ -646,7 +606,7 @@ void BenchmarkRunner::start()
 {
     Benchmark &bm = benchmarks[m_currentBenchmark];
 
-    if (bm.operationsPerFrame.size() == 0 && !onlyPrintJson)
+    if (bm.operationsPerFrame.size() == 0 && !Options::instance.onlyPrintJson)
         std::cout << "running: " << bm.fileName.toStdString() << std::endl;
 
     m_component = new QQmlComponent(m_view->engine(), bm.fileName);
@@ -659,7 +619,7 @@ void BenchmarkRunner::start()
         return;
     }
 
-    m_view->setSource(QUrl(options.bmTemplate));
+    m_view->setSource(QUrl(Options::instance.bmTemplate));
     if (!m_view->rootObject()) {
         qWarning() << "no root object..";
         abortAll();
@@ -676,7 +636,7 @@ void BenchmarkRunner::maybeStartNext()
     if (m_currentBenchmark < benchmarks.size()) {
         QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
     } else {
-        if (!onlyPrintJson)
+        if (!Options::instance.onlyPrintJson)
             std::cout << "All done..." << std::endl;
         qApp->quit();
     }
@@ -708,7 +668,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
 
     QList<qreal> bucket;
-    if (options.useBuckets) {
+    if (Options::instance.useBuckets) {
         for (QHash<qreal, QList<qreal> >::iterator it = bm.averageBuckets.begin(), end = bm.averageBuckets.end(); it != end; ++it) {
             qreal avg = it.key();
             qreal dev = qFuzzyIsNull(avg) ? 0.0 : qAbs(ops - avg) / avg;
@@ -728,10 +688,10 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
         avg += r;
     avg /= bucket.size();
 
-    if (options.useBuckets)
+    if (Options::instance.useBuckets)
         bm.averageBuckets.insert(avg, bucket);
 
-    if (bucket.size() >= options.repeat || bm.averageBuckets.size() >= options.maximumBuckets) {
+    if (bucket.size() >= Options::instance.repeat || bm.averageBuckets.size() >= Options::instance.maximumBuckets) {
         qreal stddevGlobal = stddev(avg, bm.operationsPerFrame);
         qreal stddevBucket = stddev(avg, bucket);
         QList<qreal> all = bm.operationsPerFrame;
@@ -750,13 +710,13 @@ void BenchmarkRunner::complete()
 
     bool restart = false;
 
-    if (options.useBuckets) {
+    if (Options::instance.useBuckets) {
         int biggestBucket = 0;
         foreach (const QList<qreal> &bucket, benchmarks[m_currentBenchmark].averageBuckets)
             biggestBucket = qMax(biggestBucket, bucket.size());
-        restart = biggestBucket < options.repeat;
+        restart = biggestBucket < Options::instance.repeat;
     } else {
-        restart = benchmarks[m_currentBenchmark].operationsPerFrame.size() < options.repeat;
+        restart = benchmarks[m_currentBenchmark].operationsPerFrame.size() < Options::instance.repeat;
     }
 
     if (restart)
