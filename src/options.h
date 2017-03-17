@@ -53,6 +53,7 @@ struct Options
     }
 
     QString bmTemplate;
+    QString id;
     bool fullscreen;
     bool verbose;
     bool useBuckets;

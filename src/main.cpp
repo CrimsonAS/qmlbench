@@ -403,6 +403,7 @@ int main(int argc, char **argv)
     }
 
     BenchmarkRunner runner;
+    Options::instance.id = parser.value(idOption);
     Options::instance.verbose = parser.isSet(verboseOption);
     Options::instance.fullscreen = parser.isSet(fullscreenOption);
     Options::instance.repeat = qMax<int>(1, parser.value(repeatOption).toInt());
@@ -420,7 +421,7 @@ int main(int argc, char **argv)
     if (size.isValid())
         Options::instance.windowSize = size;
 
-    ResultRecorder::startResults(parser.value(idOption), isSubProcess);
+    ResultRecorder::startResults(Options::instance.id, isSubProcess);
     ResultRecorder::recordWindowSize(Options::instance.windowSize);
 
     if (parser.isSet(fpsOverrideOption))
