@@ -275,7 +275,13 @@ QStringList processCommandLineArguments(const QGuiApplication &app, BenchmarkRun
     QCommandLineParser parser;
 
     QCommandLineOption subprocessOption("silently-really-run-and-bypass-subprocess");
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
     subprocessOption.setFlags(subprocessOption.flags() | QCommandLineOption::HiddenFromHelp);
+#else
+    subprocessOption.setHidden(true);
+#endif
+
     parser.addOption(subprocessOption);
 
     QCommandLineOption verboseOption(QStringList() << QStringLiteral("v") << QStringLiteral("verbose"),
