@@ -43,9 +43,9 @@ class ResultRecorder
     static QVariantMap m_results;
 
 public:
-    static void startResults(const QString &id, bool isSubProcess)
+    static void startResults(const QString &id)
     {
-        if (isSubProcess)
+        if (Options::instance.isSubProcess)
             return; // parent process will get all this.
 
         m_results["id"] = id;
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
 
     parser.process(app);
 
-    bool isSubProcess = parser.isSet(subprocessOption);
+    Options::instance.isSubProcess = parser.isSet(subprocessOption);
 
     if (parser.isSet(jsonOption)) {
         Options::instance.onlyPrintJson = true;
@@ -421,7 +421,7 @@ int main(int argc, char **argv)
     if (size.isValid())
         Options::instance.windowSize = size;
 
-    ResultRecorder::startResults(Options::instance.id, isSubProcess);
+    ResultRecorder::startResults(Options::instance.id);
     ResultRecorder::recordWindowSize(Options::instance.windowSize);
 
     if (parser.isSet(fpsOverrideOption))
@@ -465,7 +465,7 @@ int main(int argc, char **argv)
         }
     }
 
-    if (Options::instance.verbose && !isSubProcess) {
+    if (Options::instance.verbose && !Options::instance.isSubProcess) {
         std::cout << "Frame Rate .........: " << (Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
@@ -486,7 +486,7 @@ int main(int argc, char **argv)
     // (!isSubProcess) proxies a bunch of child processes that actually do the
     // work, and report output back to the parent. This keeps the benchmark
     // environment fairly clean.
-    if (!isSubProcess) {
+    if (!Options::instance.isSubProcess) {
         QStringList sanitizedArgs;
         QStringList positionalArgs = parser.positionalArguments();
 

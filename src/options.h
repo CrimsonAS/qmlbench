@@ -39,6 +39,7 @@ struct Options
         , verbose(false)
         , useBuckets(true)
         , onlyPrintJson(false)
+        , isSubProcess(false)
         , repeat(1)
         , maximumBuckets(10)
         , delayedStart(0)
@@ -58,6 +59,7 @@ struct Options
     bool verbose;
     bool useBuckets;
     bool onlyPrintJson;
+    bool isSubProcess;
     int repeat;
     int maximumBuckets;
     int delayedStart;
