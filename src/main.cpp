@@ -33,9 +33,11 @@
 #include <QtGui>
 #include <QtQuick>
 
+#include "options.h"
 #include "qcommandlineparser.h"
 
 static bool onlyPrintJson = false;
+Options Options::instance;
 
 class ResultRecorder
 {
