@@ -671,6 +671,15 @@ qreal stddev(qreal avg, const QList<qreal> &list)
     return ::sqrt(dev / list.size());
 }
 
+qreal average(const QList<qreal> &list)
+{
+    qreal avg = 0;
+    foreach (qreal r, list)
+        avg += r;
+    avg /= list.size();
+    return avg;
+}
+
 void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
 {
     Benchmark &bm = benchmarks[m_currentBenchmark];
@@ -678,10 +687,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
 
     QList<qreal> results = bm.operationsPerFrame;
-    qreal avg = 0;
-    foreach (qreal r, results)
-        avg += r;
-    avg /= results.size();
+    qreal avg = average(results);
 
     if (results.size() >= Options::instance.repeat) {
         std::sort(results.begin(), results.end());
