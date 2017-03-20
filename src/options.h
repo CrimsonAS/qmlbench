@@ -37,11 +37,9 @@ struct Options
     Options()
         : fullscreen(false)
         , verbose(false)
-        , useBuckets(true)
         , onlyPrintJson(false)
         , isSubProcess(false)
         , repeat(1)
-        , maximumBuckets(10)
         , delayedStart(0)
         , count(-1)
         , frameCountInterval(20000)
@@ -57,11 +55,9 @@ struct Options
     QString id;
     bool fullscreen;
     bool verbose;
-    bool useBuckets;
     bool onlyPrintJson;
     bool isSubProcess;
     int repeat;
-    int maximumBuckets;
     int delayedStart;
     int count;
     int frameCountInterval;
