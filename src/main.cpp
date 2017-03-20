@@ -679,12 +679,15 @@ void BenchmarkRunner::abortAll()
     qApp->quit();
 }
 
+// Returns "corrected sample standard deviation".
 qreal stddev(qreal avg, const QList<qreal> &list)
 {
     qreal dev = 0;
     foreach (qreal v, list)
         dev += (v - avg) * (v - avg);
-    return ::sqrt(dev / list.size());
+
+    // Note: - 1 is intentional!
+    return ::sqrt(dev / (list.size() - 1));
 }
 
 qreal average(const QList<qreal> &list)
