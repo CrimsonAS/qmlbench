@@ -1,5 +1,6 @@
 import QtQuick 2.0
 
+// Testing the performance of anchors against w/h bindings (item_size).
 Item {
     id: root;
     property int count: 50;
@@ -21,11 +22,11 @@ Item {
             y: Math.random() * (root.height - height)
             width: 30
             height: 15
-            Rectangle {
-                color: "steelblue"
-                width: parent.width
-                height: parent.height
+
+            Item {
+                anchors.fill: parent
             }
         }
     }
 }
+
