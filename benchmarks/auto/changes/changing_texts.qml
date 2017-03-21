@@ -1,5 +1,6 @@
 import QtQuick 2.0
 
+// Testing the performance of changing all texts in a scene vs 1 (text_oneofmany)
 Item {
     id: root;
     property int count: 100;
