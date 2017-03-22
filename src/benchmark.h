@@ -26,52 +26,22 @@
 **
 ****************************************************************************/
 
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#ifndef BENCHMARK_H
+#define BENCHMARK_H
 
 #include <QString>
-#include <QSize>
+#include <QList>
 
-#include "benchmark.h"
-
-struct Options
+struct Benchmark
 {
-    Options()
-        : fullscreen(false)
-        , verbose(false)
-        , onlyPrintJson(false)
-        , isSubProcess(false)
-        , repeat(1)
-        , delayedStart(0)
-        , count(-1)
-        , frameCountInterval(20000)
-        , fpsTolerance(0.05)
-        , fpsInterval(1000)
-        , fpsOverride(0)
-        , windowSize(800, 600)
-        , hardwareMultiplier(1.0)
+    Benchmark(const QString &file)
+        : fileName(file)
     {
     }
 
-    QString bmTemplate;
-    QString id;
-    bool fullscreen;
-    bool verbose;
-    bool onlyPrintJson;
-    bool isSubProcess;
-    int repeat;
-    int delayedStart;
-    int count;
-    int frameCountInterval;
-    qreal fpsTolerance;
-    qreal fpsInterval;
-    qreal fpsOverride;
-    qreal targetFps;
-    QSize windowSize;
-    double hardwareMultiplier;
-    QList<Benchmark> benchmarks;
+    QString fileName;
 
-    static Options instance;
+    QList<qreal> operationsPerFrame;
 };
 
-#endif // OPTIONS_H
+#endif // BENCHMARK_H

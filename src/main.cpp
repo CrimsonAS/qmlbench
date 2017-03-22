@@ -33,6 +33,7 @@
 #include <QtGui>
 #include <QtQuick>
 
+#include "benchmark.h"
 #include "options.h"
 #include "qcommandlineparser.h"
 
@@ -193,20 +194,6 @@ public:
 QVariantMap ResultRecorder::m_results;
 bool ResultRecorder::opsAreActuallyFrames = false;
 
-struct Benchmark
-{
-    Benchmark(const QString &file)
-        : fileName(file)
-    {
-    }
-
-    QString fileName;
-
-    QList<qreal> operationsPerFrame;
-};
-
-
-
 class BenchmarkRunner : public QObject
 {
     Q_OBJECT
@@ -230,12 +217,10 @@ public:
 
     bool execute();
 
-    QList<Benchmark> benchmarks;
-
     QQuickView *view() const { return m_view; }
     QQmlComponent *component() const { return m_component; }
     qreal screenRefreshRate() const { return Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : m_view->screen()->refreshRate(); }
-    QString input() const { return benchmarks[m_currentBenchmark].fileName; }
+    QString input() const { return Options::instance.benchmarks.first().fileName; }
 
     qreal fpsTolerance() const { return Options::instance.fpsTolerance / 100.0; }
     qreal fpsInterval() const { return Options::instance.fpsInterval; }
@@ -254,18 +239,14 @@ public slots:
 
 private slots:
     void start();
-    void maybeStartNext();
+    void finished();
 
 private:
-    void abortAll();
-
-    int m_currentBenchmark;
-
     QQuickView *m_view;
     QQmlComponent *m_component;
 };
 
-QStringList processCommandLineArguments(const QGuiApplication &app, BenchmarkRunner &runner)
+QStringList processCommandLineArguments(const QGuiApplication &app)
 {
     QCommandLineParser parser;
 
@@ -416,7 +397,7 @@ QStringList processCommandLineArguments(const QGuiApplication &app, BenchmarkRun
         if (!info.exists()) {
             qWarning() << "input doesn't exist:" << input;
         } else if (info.suffix() == QStringLiteral("qml")) {
-            runner.benchmarks << Benchmark(info.absoluteFilePath());
+            Options::instance.benchmarks << Benchmark(info.absoluteFilePath());
         } else if (info.isDir()) {
             QHash<QString, QString> basenameDuplicateCheck; // basename -> relative path
             QDirIterator iterator(input, QStringList() << QStringLiteral("*.qml"), QDir::NoFilter, QDirIterator::Subdirectories);
@@ -432,7 +413,7 @@ QStringList processCommandLineArguments(const QGuiApplication &app, BenchmarkRun
                 }
 
                 basenameDuplicateCheck[fi.baseName()] = fi.absoluteDir().absolutePath();
-                runner.benchmarks << Benchmark(fi.filePath());
+                Options::instance.benchmarks << Benchmark(fi.filePath());
             }
         }
     }
@@ -470,8 +451,7 @@ int main(int argc, char **argv)
     qmlRegisterType<QQuickView>();
 
     QGuiApplication app(argc, argv);
-    BenchmarkRunner runner;
-    QStringList positionalArgs = processCommandLineArguments(app, runner);
+    QStringList positionalArgs = processCommandLineArguments(app);
 
     if (Options::instance.verbose && !Options::instance.isSubProcess) {
         std::cout << "Frame Rate .........: " << (Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
@@ -483,7 +463,7 @@ int main(int argc, char **argv)
         std::cout << std::endl;
         std::cout << "Template ...........: " << Options::instance.bmTemplate.toStdString() << std::endl;
         std::cout << "Benchmarks:" << std::endl;
-        foreach (const Benchmark &b, runner.benchmarks) {
+        foreach (const Benchmark &b, Options::instance.benchmarks) {
             std::cout << " - " << b.fileName.toStdString() << std::endl;
         }
     }
@@ -508,7 +488,7 @@ int main(int argc, char **argv)
 
         ret = 0;
 
-        for (const Benchmark &b : runner.benchmarks) {
+        for (const Benchmark &b : Options::instance.benchmarks) {
             QStringList sanitizedArgCopy = sanitizedArgs;
             sanitizedArgCopy.append(b.fileName);
 
@@ -576,6 +556,7 @@ int main(int argc, char **argv)
         }
     } else {
         // Subprocess mode... Simple :)
+        BenchmarkRunner runner;
         if (!runner.execute())
             return 0;
 
@@ -587,8 +568,7 @@ int main(int argc, char **argv)
 }
 
 BenchmarkRunner::BenchmarkRunner()
-    : m_currentBenchmark(0)
-    , m_view(0)
+    : m_view(0)
 {
 }
 
@@ -599,8 +579,7 @@ BenchmarkRunner::~BenchmarkRunner()
 
 bool BenchmarkRunner::execute()
 {
-    m_currentBenchmark = 0;
-    if (benchmarks.size() == 0)
+    if (Options::instance.benchmarks.size() == 0)
         return false;
     QTimer::singleShot(Options::instance.delayedStart, this, SLOT(start()));
 
@@ -628,7 +607,7 @@ bool BenchmarkRunner::execute()
 
 void BenchmarkRunner::start()
 {
-    Benchmark &bm = benchmarks[m_currentBenchmark];
+    Benchmark &bm = Options::instance.benchmarks.first();
 
     if (bm.operationsPerFrame.size() == 0 && !Options::instance.onlyPrintJson)
         std::cout << "running: " << bm.fileName.toStdString() << std::endl;
@@ -646,33 +625,22 @@ void BenchmarkRunner::start()
     m_view->setSource(QUrl(Options::instance.bmTemplate));
     if (!m_view->rootObject()) {
         qWarning() << "no root object..";
-        abortAll();
+        abort();
         return;
     }
 }
 
-void BenchmarkRunner::maybeStartNext()
+void BenchmarkRunner::finished()
 {
-
-    ++m_currentBenchmark;
-    if (m_currentBenchmark < benchmarks.size()) {
-        QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
-    } else {
-        if (!Options::instance.onlyPrintJson)
-            std::cout << "All done..." << std::endl;
-        qApp->quit();
-    }
+    if (!Options::instance.onlyPrintJson)
+        std::cout << "All done..." << std::endl;
+    qApp->quit();
 }
 
 void BenchmarkRunner::abort()
 {
-    maybeStartNext();
-}
-
-void BenchmarkRunner::abortAll()
-{
-    qWarning() << "Aborting all benchmarks...";
-    qApp->quit();
+    qWarning() << "Aborting...";
+    exit(1);
 }
 
 // Returns "corrected sample standard deviation".
@@ -697,7 +665,7 @@ qreal average(const QList<qreal> &list)
 
 void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
 {
-    Benchmark &bm = benchmarks[m_currentBenchmark];
+    Benchmark &bm = Options::instance.benchmarks.first();
     bm.operationsPerFrame << ops;
     ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
 
@@ -714,12 +682,12 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     m_component = 0;
 
     bool restart = false;
-    restart = benchmarks[m_currentBenchmark].operationsPerFrame.size() < Options::instance.repeat;
+    restart = bm.operationsPerFrame.size() < Options::instance.repeat;
 
     if (restart)
         QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
     else
-        QMetaObject::invokeMethod(this, "maybeStartNext", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection);
 }
 
 #include "main.moc"
