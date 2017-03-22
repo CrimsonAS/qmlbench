@@ -508,6 +508,8 @@ int main(int argc, char **argv)
                 sanitizedArgs.append(arg);
         }
 
+        ret = 0;
+
         for (const Benchmark &b : runner.benchmarks) {
             QStringList sanitizedArgCopy = sanitizedArgs;
             sanitizedArgCopy.append(b.fileName);
@@ -535,8 +537,24 @@ int main(int argc, char **argv)
                 }
             });
 
-            p->start(argv[0], sanitizedArgCopy);
-            p->waitForFinished(-1);
+            if (ret == 0) {
+                p->start(argv[0], sanitizedArgCopy);
+                if (!p->waitForFinished(60*10*1000)) {
+                    qWarning() << "Test hung (probably indefinitely) indefinitely when run with arguments: " << sanitizedArgCopy.join(' ');
+                    qWarning("Aborting test run, as this probably means benchmark setup is screwed up or the hardware needs resetting!");
+
+                    // Don't exit straight away. Instead, record empty runs for
+                    // everything else (so this is visualized as being a problem),
+                    // and then exit uncleanly to allow the harness to restart the HW.
+                    ret = 1;
+                }
+
+                if (p->exitStatus() != QProcess::NormalExit) {
+                    qWarning() << "Test crashed when run with arguments: " << sanitizedArgCopy.join(' ');
+
+                    // Continue the run, but note the failure.
+                }
+            }
             delete p;
 
             if (Options::instance.onlyPrintJson) {
@@ -558,8 +576,6 @@ int main(int argc, char **argv)
                 }
             }
         }
-
-        ret = 0;
     } else {
         // Subprocess mode... Simple :)
         if (!runner.execute())
