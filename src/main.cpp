@@ -201,7 +201,6 @@ struct Benchmark
     }
 
     QString fileName;
-    QSize windowSize;
 
     QList<qreal> operationsPerFrame;
 };
@@ -651,8 +650,6 @@ void BenchmarkRunner::start()
         abortAll();
         return;
     }
-
-    bm.windowSize = m_view->size();
 }
 
 void BenchmarkRunner::maybeStartNext()
