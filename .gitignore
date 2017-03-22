@@ -1,6 +1,7 @@
 *.qmlc
 *.o
 *.moc
+moc_*.cpp
 moc_predefs.h
 qrc_qmlbench.cpp
 src/qmlbench
