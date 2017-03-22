@@ -250,7 +250,6 @@ public:
 
 public slots:
     void recordOperationsPerFrame(qreal count);
-    void complete();
     void abort();
 
 private slots:
@@ -711,11 +710,6 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
         ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, bm.operationsPerFrame.size(), stddev(avg, results), median);
     }
 
-    complete();
-}
-
-void BenchmarkRunner::complete()
-{
     m_component->deleteLater();
     m_component = 0;
 
