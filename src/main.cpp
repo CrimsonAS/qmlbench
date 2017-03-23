@@ -43,7 +43,7 @@ Options Options::instance;
 
 static const char *subprocessOptionString = "subprocess-mode";
 
-QStringList processCommandLineArguments(const QGuiApplication &app)
+QStringList processCommandLineArguments(const QCoreApplication &app)
 {
     QCommandLineParser parser;
 
@@ -239,12 +239,15 @@ void setupDefaultSurfaceFormat(int argc, char **argv)
     }
 }
 
-int runHostProcess(const QGuiApplication &app, const QStringList &positionalArgs)
+int runHostProcess(const QCoreApplication &app, const QStringList &positionalArgs)
 {
     int ret = 0;
 
     if (Options::instance.verbose) {
-        std::cout << "Frame Rate .........: " << (Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
+        if (Options::instance.fpsOverride > 0)
+            std::cout << "Frame Rate .........: " << Options::instance.fpsOverride << std::endl;
+        else
+            std::cout << "Frame Rate .........: default" << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
         std::cout << "Fps Interval .......: " << Options::instance.fpsInterval << std::endl;
@@ -352,8 +355,25 @@ int main(int argc, char **argv)
 
     qmlRegisterType<QQuickView>();
 
-    QGuiApplication app(argc, argv);
-    QStringList positionalArgs = processCommandLineArguments(app);
+    QScopedPointer<QCoreApplication> app;
+
+    bool needsGui = false;
+    for (int i = 0; i < argc; ++i) {
+        // strstr because the actual option looks like "--foo" not "foo".
+        // not perfect, but good enough.
+        if (strstr(argv[i], subprocessOptionString) != NULL) {
+            needsGui = true;
+            break;
+        }
+    }
+
+    if (needsGui) {
+        app.reset(new QGuiApplication(argc, argv));
+    } else {
+        app.reset(new QCoreApplication(argc, argv));
+    }
+
+    QStringList positionalArgs = processCommandLineArguments(*app);
 
     int ret = 0;
 
@@ -362,9 +382,9 @@ int main(int argc, char **argv)
     // work, and report output back to the parent. This keeps the benchmark
     // environment fairly clean.
     if (!Options::instance.isSubProcess) {
-        ret = runHostProcess(app, positionalArgs);
+        ret = runHostProcess(*app, positionalArgs);
     } else {
-        ret = runSubProcess(app);
+        ret = runSubProcess(static_cast<QGuiApplication&>(*app));
     }
 
     ResultRecorder::finish();

@@ -45,8 +45,10 @@ bool ResultRecorder::opsAreActuallyFrames = false;
 
 void ResultRecorder::startResults(const QString &id)
 {
-    if (Options::instance.isSubProcess)
-        return; // parent process will get all this.
+    // sub process will get all this.
+    // safer that way, as then we keep OpenGL (and QGuiApplication) out of the host
+    if (!Options::instance.isSubProcess)
+        return;
 
     m_results["id"] = id;
 
