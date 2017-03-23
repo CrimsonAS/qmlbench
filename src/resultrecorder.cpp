@@ -174,9 +174,12 @@ void ResultRecorder::recordOperationsPerFrameAverage(const QString &benchmark, q
     m_results[benchmark] = benchMap;
 }
 
-void ResultRecorder::mergeResults(const QString &benchmark, const QJsonObject &o)
+void ResultRecorder::mergeResults(const QJsonObject &o)
 {
-    m_results[benchmark] = o.toVariantMap();
+    // Merge the keys from the subprocess in where they should be.
+    for (auto it = o.constBegin(); it != o.constEnd(); ++it) {
+        m_results[it.key()] = it.value().toVariant();
+    }
 }
 
 void ResultRecorder::finish()

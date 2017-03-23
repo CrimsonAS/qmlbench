@@ -41,7 +41,7 @@ public:
     static void recordWindowSize(const QSize &windowSize);
     static void recordOperationsPerFrame(const QString &benchmark, int ops);
     static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, qreal median);
-    static void mergeResults(const QString &benchmark, const QJsonObject &o);
+    static void mergeResults(const QJsonObject &o);
     static void finish();
 
     static bool opsAreActuallyFrames;

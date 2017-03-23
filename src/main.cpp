@@ -327,13 +327,7 @@ int runHostProcess(const QGuiApplication &app, const QStringList &positionalArgs
                 qWarning() << "Can't parse JSON for result for " << b.fileName;
                 qWarning() << "Error: " << jerr.errorString();
             } else {
-                QJsonObject o = d.object();
-
-                /* skip the "wrapper" object, as mergeResults
-                 * will create a new one itself.
-                 */
-                o = o.begin()->toObject();
-                ResultRecorder::mergeResults(b.fileName, o);
+                ResultRecorder::mergeResults(d.object());
             }
         }
     }
