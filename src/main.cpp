@@ -41,11 +41,13 @@
 
 Options Options::instance;
 
+static const char *subprocessOptionString = "subprocess-mode";
+
 QStringList processCommandLineArguments(const QGuiApplication &app)
 {
     QCommandLineParser parser;
 
-    QCommandLineOption subprocessOption("silently-really-run-and-bypass-subprocess");
+    QCommandLineOption subprocessOption(subprocessOptionString);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
     subprocessOption.setFlags(subprocessOption.flags() | QCommandLineOption::HiddenFromHelp);
@@ -237,18 +239,11 @@ void setupDefaultSurfaceFormat(int argc, char **argv)
     }
 }
 
-int main(int argc, char **argv)
+int runHostProcess(const QGuiApplication &app, const QStringList &positionalArgs)
 {
-    // We need to do this early on, so there's no interference from the shared
-    // GL context.
-    setupDefaultSurfaceFormat(argc, argv);
+    int ret = 0;
 
-    qmlRegisterType<QQuickView>();
-
-    QGuiApplication app(argc, argv);
-    QStringList positionalArgs = processCommandLineArguments(app);
-
-    if (Options::instance.verbose && !Options::instance.isSubProcess) {
+    if (Options::instance.verbose) {
         std::cout << "Frame Rate .........: " << (Options::instance.fpsOverride > 0 ? Options::instance.fpsOverride : QGuiApplication::primaryScreen()->refreshRate()) << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
@@ -263,6 +258,109 @@ int main(int argc, char **argv)
         }
     }
 
+    QStringList sanitizedArgs;
+
+    // The magic sauce
+    sanitizedArgs.append(QLatin1String("--") + subprocessOptionString);
+
+    // Add everything that was not a file/dir
+    for (const QString &arg : qApp->arguments()) {
+        if (!positionalArgs.contains(arg) && arg != app.arguments().first())
+            sanitizedArgs.append(arg);
+    }
+
+    ret = 0;
+
+    for (const Benchmark &b : Options::instance.benchmarks) {
+        QStringList sanitizedArgCopy = sanitizedArgs;
+        sanitizedArgCopy.append(b.fileName);
+
+        QProcess *p = new QProcess;
+        QObject::connect(p, &QProcess::readyReadStandardError, p, [&]() {
+            QStringList lines = QString::fromLatin1(p->readAllStandardError()).split("\n");
+            for (const QString &ln : lines) {
+                if (!ln.isEmpty())
+                    std::cerr << "SUB: " << ln.toLocal8Bit().constData() << "\n";
+            }
+        });
+
+        QByteArray jsonOutput;
+
+        QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
+            QStringList lines = QString::fromLatin1(p->readAllStandardOutput()).split("\n");
+            for (const QString &ln : lines) {
+                if (!Options::instance.onlyPrintJson) {
+                    if (!ln.isEmpty())
+                        std::cout << "SUB: " << ln.toLocal8Bit().constData() << "\n";
+                } else {
+                    jsonOutput += ln.toUtf8();
+                }
+            }
+        });
+
+        if (ret == 0) {
+            p->start(app.arguments().first(), sanitizedArgCopy);
+            if (!p->waitForFinished(60*10*1000)) {
+                qWarning() << "Test hung (probably indefinitely) indefinitely when run with arguments: " << sanitizedArgCopy.join(' ');
+                qWarning("Aborting test run, as this probably means benchmark setup is screwed up or the hardware needs resetting!");
+
+                // Don't exit straight away. Instead, record empty runs for
+                // everything else (so this is visualized as being a problem),
+                // and then exit uncleanly to allow the harness to restart the HW.
+                ret = 1;
+            }
+
+            if (p->exitStatus() != QProcess::NormalExit) {
+                qWarning() << "Test crashed when run with arguments: " << sanitizedArgCopy.join(' ');
+
+                // Continue the run, but note the failure.
+            }
+        }
+        delete p;
+
+        if (Options::instance.onlyPrintJson) {
+            // Turn stdout into a JSON object and merge our results into the
+            // final ones.
+            QJsonParseError jerr;
+            QJsonDocument d = QJsonDocument::fromJson(jsonOutput, &jerr);
+            if (d.isNull()) {
+                qWarning() << "Can't parse JSON for result for " << b.fileName;
+                qWarning() << "Error: " << jerr.errorString();
+            } else {
+                QJsonObject o = d.object();
+
+                /* skip the "wrapper" object, as mergeResults
+                 * will create a new one itself.
+                 */
+                o = o.begin()->toObject();
+                ResultRecorder::mergeResults(b.fileName, o);
+            }
+        }
+    }
+
+    return ret;
+}
+
+int runSubProcess(QGuiApplication &app)
+{
+    BenchmarkRunner runner;
+    if (!runner.execute())
+        return 0;
+
+    return app.exec();
+}
+
+int main(int argc, char **argv)
+{
+    // We need to do this early on, so there's no interference from the shared
+    // GL context.
+    setupDefaultSurfaceFormat(argc, argv);
+
+    qmlRegisterType<QQuickView>();
+
+    QGuiApplication app(argc, argv);
+    QStringList positionalArgs = processCommandLineArguments(app);
+
     int ret = 0;
 
     // qmlbench works as a split process mode. The parent process
@@ -270,92 +368,9 @@ int main(int argc, char **argv)
     // work, and report output back to the parent. This keeps the benchmark
     // environment fairly clean.
     if (!Options::instance.isSubProcess) {
-        QStringList sanitizedArgs;
-
-        // The magic sauce
-        sanitizedArgs.append("--silently-really-run-and-bypass-subprocess");
-
-        // Add everything that was not a file/dir
-        for (const QString &arg : qApp->arguments()) {
-            if (!positionalArgs.contains(arg) && arg != argv[0])
-                sanitizedArgs.append(arg);
-        }
-
-        ret = 0;
-
-        for (const Benchmark &b : Options::instance.benchmarks) {
-            QStringList sanitizedArgCopy = sanitizedArgs;
-            sanitizedArgCopy.append(b.fileName);
-
-            QProcess *p = new QProcess;
-            QObject::connect(p, &QProcess::readyReadStandardError, p, [&]() {
-                QStringList lines = QString::fromLatin1(p->readAllStandardError()).split("\n");
-                for (const QString &ln : lines) {
-                    if (!ln.isEmpty())
-                        std::cerr << "SUB: " << ln.toLocal8Bit().constData() << "\n";
-                }
-            });
-
-            QByteArray jsonOutput;
-
-            QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
-                QStringList lines = QString::fromLatin1(p->readAllStandardOutput()).split("\n");
-                for (const QString &ln : lines) {
-                    if (!Options::instance.onlyPrintJson) {
-                        if (!ln.isEmpty())
-                            std::cout << "SUB: " << ln.toLocal8Bit().constData() << "\n";
-                    } else {
-                        jsonOutput += ln.toUtf8();
-                    }
-                }
-            });
-
-            if (ret == 0) {
-                p->start(argv[0], sanitizedArgCopy);
-                if (!p->waitForFinished(60*10*1000)) {
-                    qWarning() << "Test hung (probably indefinitely) indefinitely when run with arguments: " << sanitizedArgCopy.join(' ');
-                    qWarning("Aborting test run, as this probably means benchmark setup is screwed up or the hardware needs resetting!");
-
-                    // Don't exit straight away. Instead, record empty runs for
-                    // everything else (so this is visualized as being a problem),
-                    // and then exit uncleanly to allow the harness to restart the HW.
-                    ret = 1;
-                }
-
-                if (p->exitStatus() != QProcess::NormalExit) {
-                    qWarning() << "Test crashed when run with arguments: " << sanitizedArgCopy.join(' ');
-
-                    // Continue the run, but note the failure.
-                }
-            }
-            delete p;
-
-            if (Options::instance.onlyPrintJson) {
-                // Turn stdout into a JSON object and merge our results into the
-                // final ones.
-                QJsonParseError jerr;
-                QJsonDocument d = QJsonDocument::fromJson(jsonOutput, &jerr);
-                if (d.isNull()) {
-                    qWarning() << "Can't parse JSON for result for " << b.fileName;
-                    qWarning() << "Error: " << jerr.errorString();
-                } else {
-                    QJsonObject o = d.object();
-
-                    /* skip the "wrapper" object, as mergeResults
-                     * will create a new one itself.
-                     */
-                    o = o.begin()->toObject();
-                    ResultRecorder::mergeResults(b.fileName, o);
-                }
-            }
-        }
+        ret = runHostProcess(app, positionalArgs);
     } else {
-        // Subprocess mode... Simple :)
-        BenchmarkRunner runner;
-        if (!runner.execute())
-            return 0;
-
-        ret = app.exec();
+        ret = runSubProcess(app);
     }
 
     ResultRecorder::finish();
