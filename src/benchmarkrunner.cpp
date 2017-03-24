@@ -29,6 +29,7 @@
 #include <QTimer>
 #include <QGuiApplication>
 #include <QQmlContext>
+#include <QDebug>
 
 #include <cmath>
 #include <iostream>
