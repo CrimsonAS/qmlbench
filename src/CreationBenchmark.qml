@@ -33,19 +33,20 @@ import QmlBench 1.0
 // A creation benchmark is something that attempts to create 'count' items, and
 // render 'count' items, as driven by the shell.
 Benchmark {
-    property alias delegate: repeater.delegate
+    property alias delegate: internalRepeater.delegate
+    property alias repeater: internalRepeater
 
     // Whenever the frame tick happens, force the destruction and recreation of
     // all items.
     onTChanged: {
-        repeater.model = 0;
-        repeater.model = root.count
+        internalRepeater.model = 0;
+        internalRepeater.model = root.count
     }
 
-    Component.onCompleted: repeater.model = root.count
+    Component.onCompleted: internalRepeater.model = root.count
 
     // The thing that makes the magic happen.
     Repeater {
-        id: repeater
+        id: internalRepeater
     }
 }

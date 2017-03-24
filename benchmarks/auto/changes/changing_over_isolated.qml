@@ -1,13 +1,19 @@
 import QtQuick 2.0
+import QmlBench 1.0
 
-Item {
+// This benchmark determines if clipping two subtrees isolates them,
+// such that one changing subtree won't affect performance because
+// of the other.
+CreationBenchmark {
     id: root;
-    property int count: 1000;
-    property int staticCount: 2000
+    count: 1000;
+    staticCount: 2000
 
-    property real t;
-    NumberAnimation on t { from: 0; to: 1; duration: 2347; loops: Animation.Infinite }
+    // Boolean because: isolating via clip either keeps performance good, or
+    // performance is awful if we break it.
+    isBooleanResult: true;
 
+    // Create a static subtree of items. This tree does not change.
     Item {
         anchors.fill: parent
         clip: true
@@ -32,6 +38,7 @@ Item {
         }
     }
 
+    // Create a subtree containing a single item. This tree does change.
     Item {
         anchors.fill: parent
         clip: true
@@ -40,5 +47,4 @@ Item {
             text: "test: " + root.t;
         }
     }
-
 }

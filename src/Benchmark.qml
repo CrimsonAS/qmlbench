@@ -43,6 +43,15 @@ Item {
     // value.
     property int staticCount: 0
 
+    // A boolean benchmark has only two meaningful outputs: good, or bad. An
+    // contrived example of this would be a benchmark that ensured that we could
+    // render more than 10 frames in 5 seconds of real-world time (in practice,
+    // this isn't too useful, but there are real world cases).
+    //
+    // This property is simply of use to help mark these tests so they are not
+    // misinterpreted.
+    property bool isBooleanResult: false;
+
     // Used to provide a constant "tick" that benchmarks can hook into.
     property real t
     NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
