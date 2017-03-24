@@ -4,5 +4,7 @@
     <file>Shell_SustainedFpsWithCount.qml</file>
     <file>Shell_SustainedFpsWithStaticCount.qml</file>
     <file>Shell_TotalFramesWithStaticCount.qml</file>
+    <file>Benchmark.qml</file>
+    <file>CreationBenchmark.qml</file>
   </qresource>
 </RCC>

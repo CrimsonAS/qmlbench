@@ -354,6 +354,8 @@ int main(int argc, char **argv)
     setupDefaultSurfaceFormat(argc, argv);
 
     qmlRegisterType<QQuickView>();
+    qmlRegisterType(QUrl("qrc:/Benchmark.qml"), "QmlBench", 1, 0, "Benchmark");
+    qmlRegisterType(QUrl("qrc:/CreationBenchmark.qml"), "QmlBench", 1, 0, "CreationBenchmark");
 
     QScopedPointer<QCoreApplication> app;
 
