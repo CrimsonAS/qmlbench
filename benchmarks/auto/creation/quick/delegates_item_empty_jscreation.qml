@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
+// Test allocation of Item, with no Repeater or anything.
+// Compare with delegates_qobject & delegates_item_empty.
 Benchmark {
     id: root;
     count: 50;

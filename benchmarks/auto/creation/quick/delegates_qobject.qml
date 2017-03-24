@@ -1,12 +1,13 @@
 import QtQuick 2.0
+import QmlBench 1.0
 
-Item {
+// Test allocation of QObject, with no Repeater or anything.
+// Compare with delegates_qobject & delegates_item_empty.
+Benchmark {
     id: root;
-    property int count: 50;
-    property int staticCount: 10000;
+    count: 50;
+    staticCount: 10000;
 
-    property real t;
-    NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
     onTChanged: {
         allocate();
     }
@@ -14,7 +15,6 @@ Item {
     Component {
         id: component;
         QtObject {
-
         }
     }
 

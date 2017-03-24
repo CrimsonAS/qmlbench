@@ -1,27 +1,18 @@
 import QtQuick 2.0
+import QmlBench 1.0
 
-Item {
+// Tests the creation of rectangles with an alpha channel.
+// Compare with delegates_rect.
+CreationBenchmark {
     id: root;
-    property int count: 50;
-    property int staticCount: 2500;
-
-    property real t;
-    NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
-    onTChanged: {
-        repeater.model = 0;
-        repeater.model = root.count
-    }
-
-    Component.onCompleted: repeater.model = root.count
-
-    Repeater {
-        id: repeater
-        Rectangle {
-            x: Math.random() * (root.width - width)
-            y: Math.random() * (root.height - height)
-            width: 30
-            height: 15
-            color: Qt.hsla(0.7, 0.3, 0.6, 0.5);
-        }
+    count: 50
+    staticCount: 2500
+    delegate: Rectangle {
+        x: Math.random() * (root.width - width)
+        y: Math.random() * (root.height - height)
+        width: 30
+        height: 15
+        color: Qt.hsla(0.7, 0.3, 0.6, 0.5);
     }
 }
+
