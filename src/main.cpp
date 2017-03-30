@@ -201,6 +201,11 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
             while (iterator.hasNext()) {
                 QFileInfo fi(iterator.next());
 
+                if (fi.path().contains("/manual/") && !info.filePath().contains("/manual")) {
+                    qDebug() << "Skipping unrequested manual test " << fi.absoluteFilePath();
+                    continue;
+                }
+
                 if (basenameDuplicateCheck.contains(fi.baseName())) {
                     qWarning() << "Found basename " << fi.baseName() << " in "
                                << fi.absoluteDir().absolutePath() << "and "
