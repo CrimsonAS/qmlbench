@@ -1,18 +1,10 @@
 import QtQuick 2.0
+import QmlBench 1.0
 
-Item {
+CreationBenchmark {
     id: root;
-    property int count: 50;
-    property int staticCount: 2500;
-
-    property real t;
-    NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
-    onTChanged: {
-        repeater.model = 0;
-        repeater.model = root.count
-    }
-
-    Component.onCompleted: repeater.model = root.count
+    count: 50;
+    staticCount: 2500;
 
     property var names: [
         "butterfly-wide.png",
@@ -20,15 +12,11 @@ Item {
         "butterfly-collapsed.png"
     ];
 
-    Repeater {
-        id: repeater
-        Image {
-            x: Math.random() * (root.width - width)
-            y: Math.random() * (root.height - height)
-            source: "../../../../shared/" + root.names[index % 3];
-            width: 20
-            height: 20
-
-        }
+    delegate: Image {
+        x: Math.random() * (root.width - width)
+        y: Math.random() * (root.height - height)
+        source: "../../../../shared/" + root.names[index % 3];
+        width: 20
+        height: 20
     }
 }
