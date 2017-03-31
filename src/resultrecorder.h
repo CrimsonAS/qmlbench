@@ -39,8 +39,8 @@ class ResultRecorder
 public:
     static void startResults(const QString &id);
     static void recordWindowSize(const QSize &windowSize);
-    static void recordOperationsPerFrame(const QString &benchmark, int ops);
-    static void recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, qreal median);
+    static void recordOperationsPerFrame(int ops);
+    static void recordOperationsPerFrameAverage(qreal ops, int samples, qreal stddev, qreal median);
     static void mergeResults(const QJsonObject &o);
     static void finish();
 

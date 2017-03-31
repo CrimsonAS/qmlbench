@@ -137,7 +137,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
 {
     Benchmark &bm = Options::instance.benchmarks.first();
     bm.operationsPerFrame << ops;
-    ResultRecorder::recordOperationsPerFrame(bm.fileName, ops);
+    ResultRecorder::recordOperationsPerFrame(ops);
 
     QList<qreal> results = bm.operationsPerFrame;
     qreal avg = average(results);
@@ -145,7 +145,7 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     if (results.size() >= Options::instance.repeat) {
         std::sort(results.begin(), results.end());
         qreal median = results.at(results.size() / 2);
-        ResultRecorder::recordOperationsPerFrameAverage(bm.fileName, avg, bm.operationsPerFrame.size(), stddev(avg, results), median);
+        ResultRecorder::recordOperationsPerFrameAverage(avg, bm.operationsPerFrame.size(), stddev(avg, results), median);
     }
 
     m_component->deleteLater();

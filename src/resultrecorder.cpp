@@ -129,14 +129,16 @@ void ResultRecorder::recordWindowSize(const QSize &windowSize)
     m_results["windowSize"] = QString::number(windowSize.width()) + "x" + QString::number(windowSize.height());
 }
 
-void ResultRecorder::recordOperationsPerFrame(const QString &benchmark, int ops)
+void ResultRecorder::recordOperationsPerFrame(int ops)
 {
-    QVariantMap benchMap = m_results[benchmark].toMap();
+    Q_ASSERT(Options::instance.isSubProcess);
+    Benchmark &bm = Options::instance.benchmarks.first();
+    QVariantMap benchMap = m_results[bm.fileName].toMap();
     QVariantList benchResults = benchMap["results"].toList();
     benchResults.append(ops);
 
     benchMap["results"] = benchResults;
-    m_results[benchmark] = benchMap;
+    m_results[bm.fileName] = benchMap;
 
     if (!Options::instance.onlyPrintJson) {
         if (opsAreActuallyFrames)
@@ -146,9 +148,11 @@ void ResultRecorder::recordOperationsPerFrame(const QString &benchmark, int ops)
     }
 }
 
-void ResultRecorder::recordOperationsPerFrameAverage(const QString &benchmark, qreal ops, int samples, qreal stddev, qreal median)
+void ResultRecorder::recordOperationsPerFrameAverage(qreal ops, int samples, qreal stddev, qreal median)
 {
-    QVariantMap benchMap = m_results[benchmark].toMap();
+    Q_ASSERT(Options::instance.isSubProcess);
+    Benchmark &bm = Options::instance.benchmarks.first();
+    QVariantMap benchMap = m_results[bm.fileName].toMap();
     benchMap["average"] = ops;
     benchMap["samples-in-average"] = samples;
     benchMap["samples-total"] = samples; // compatibility
@@ -173,7 +177,7 @@ void ResultRecorder::recordOperationsPerFrameAverage(const QString &benchmark, q
                   << std::endl;
     }
 
-    m_results[benchmark] = benchMap;
+    m_results[bm.fileName] = benchMap;
 }
 
 void ResultRecorder::mergeResults(const QJsonObject &o)
