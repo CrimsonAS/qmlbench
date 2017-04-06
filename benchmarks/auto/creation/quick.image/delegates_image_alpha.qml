@@ -1,22 +1,17 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
-// Test the creation of an Image with fairly stock settings (synchronous, no AA)
+// Test the creation of an Image with an ARGB PNG
+// Compare with delegates_image_solid
 CreationBenchmark {
     id: root;
     count: 50;
     staticCount: 2500;
 
-    property var names: [
-        "butterfly-wide.png",
-        "butterfly-half.png",
-        "butterfly-collapsed.png"
-    ];
-
     delegate: Image {
         x: Math.random() * (root.width - width)
         y: Math.random() * (root.height - height)
-        source: "../../../../shared/" + root.names[index % 3];
+        source: "../../../../shared/alpha.png"
         width: 20
         height: 20
     }
