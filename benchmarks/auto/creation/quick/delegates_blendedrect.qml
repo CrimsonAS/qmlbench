@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QmlBench 1.0
 
 // Tests the creation of rectangles with an alpha channel.
-// Compare with delegates_rect.
+// Compare with delegates_rect & delegates_rect_radius
 CreationBenchmark {
     id: root;
     count: 50
