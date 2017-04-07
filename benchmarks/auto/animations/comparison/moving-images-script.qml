@@ -1,32 +1,27 @@
 import QtQuick 2.2
+import QmlBench 1.0
 
-Item {
+Benchmark {
     id: root;
 
-    property int size: Math.sqrt(width * height / count);
-    property string description: count + " " + size + "x" + size + " Image instances\nAnimation with JavaScript";
-    property int count: 500
-    property int staticCount: 20000
+    count: 500
+    staticCount: 20000
 
-    Grid {
-        width: root.width
-        height: root.height
-        columns: Math.ceil(root.width / root.size);
-        rows: Math.ceil(root.height / root.size);
-        Repeater {
-            model: root.count
-            Image {
-                source: "../../../../shared/butterfly-wide.png"
-                sourceSize: Qt.size(root.size, root.size);
+    Repeater {
+        model: root.count
+        Image {
+            source: "../../../../shared/butterfly-wide.png"
+            x: Math.random() * (root.width - width)
+            y: Math.random() * (root.height - height)
+            width: 40
+            height: 40
 
-                property real t;
-                rotation: 10 * Math.sin(t * Math.PI * 2 + Math.PI);
+            property real t;
+            rotation: 10 * Math.sin(t * Math.PI * 2 + Math.PI);
 
-                SequentialAnimation on t {
-                    PauseAnimation { duration: 200 + Math.random() * 200 }
-                    NumberAnimation { from: 0; to: 1; duration: 1000; }
-                    loops: Animation.Infinite
-                }
+            SequentialAnimation on t {
+                NumberAnimation { from: 0; to: 1; duration: 1000; }
+                loops: Animation.Infinite
             }
         }
     }
