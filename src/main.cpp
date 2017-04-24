@@ -182,12 +182,10 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
         Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
     else if (Options::instance.bmTemplate == QStringLiteral("static-count"))
         Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithStaticCount.qml");
-    else if (Options::instance.bmTemplate == QStringLiteral("frame-count")) {
+    else { // "frame-count" and also the default option now
         ResultRecorder::opsAreActuallyFrames = true;
         Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_TotalFramesWithStaticCount.qml");
     }
-    else
-        Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
 
     foreach (QString input, parser.positionalArguments()) {
         QFileInfo info(input);
