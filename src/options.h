@@ -39,7 +39,7 @@ struct Options
     Options()
         : fullscreen(false)
         , verbose(false)
-        , onlyPrintJson(false)
+        , printJsonToStdout(false)
         , isSubProcess(false)
         , repeat(1)
         , delayedStart(0)
@@ -57,7 +57,7 @@ struct Options
     QString id;
     bool fullscreen;
     bool verbose;
-    bool onlyPrintJson;
+    bool printJsonToStdout;
     bool isSubProcess;
     int repeat;
     int delayedStart;

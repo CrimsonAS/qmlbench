@@ -105,7 +105,7 @@ void ResultRecorder::startResults(const QString &id)
     const char *version = (const char *) glGetString(GL_VERSION);
 #endif
 
-    if (!Options::instance.onlyPrintJson) {
+    if (!Options::instance.printJsonToStdout) {
         std::cout << "ID:          " << id.toStdString() << std::endl;
         std::cout << "OS:          " << prettyProductName.toStdString() << std::endl;
         std::cout << "QPA:         " << QGuiApplication::platformName().toStdString() << std::endl;
@@ -140,12 +140,10 @@ void ResultRecorder::recordOperationsPerFrame(int ops)
     benchMap["results"] = benchResults;
     m_results[bm.fileName] = benchMap;
 
-    if (!Options::instance.onlyPrintJson) {
-        if (opsAreActuallyFrames)
-            std::cout << "    " << ops << " frames" << std::endl;
-        else
-            std::cout << "    " << ops << " ops/frame" << std::endl;
-    }
+    if (opsAreActuallyFrames)
+        std::cerr << "    " << ops << " frames" << std::endl;
+    else
+        std::cerr << "    " << ops << " ops/frame" << std::endl;
 }
 
 void ResultRecorder::recordOperationsPerFrameAverage(qreal ops, int samples, qreal stddev, qreal median)
@@ -162,20 +160,18 @@ void ResultRecorder::recordOperationsPerFrameAverage(qreal ops, int samples, qre
     benchMap["coefficient-of-variation"] = stddev / ops;
     benchMap["median"] = median;
 
-    if (!Options::instance.onlyPrintJson) {
-        std::string opsString;
-        if (opsAreActuallyFrames)
-            opsString = " frames";
-        else
-            opsString = " ops/frame";
+    std::string opsString;
+    if (opsAreActuallyFrames)
+        opsString = " frames";
+    else
+        opsString = " ops/frame";
 
-        std::cout << "    Average: " << ops << " " << opsString << ";"
-                  << " using " << " samples"
-                  << "; MedianAll=" << median
-                  << "; StdDev=" << stddev
-                  << ", CoV=" << (stddev / ops)
-                  << std::endl;
-    }
+    std::cerr << "    Average: " << ops << " " << opsString << ";"
+              << " using " << " samples"
+              << "; MedianAll=" << median
+              << "; StdDev=" << stddev
+              << ", CoV=" << (stddev / ops)
+              << std::endl;
 
     m_results[bm.fileName] = benchMap;
 }
@@ -190,7 +186,7 @@ void ResultRecorder::mergeResults(const QJsonObject &o)
 
 void ResultRecorder::finish()
 {
-    if (Options::instance.onlyPrintJson) {
+    if (Options::instance.printJsonToStdout) {
         QJsonDocument results = QJsonDocument::fromVariant(m_results);
         std::cout << results.toJson().constData();
     }

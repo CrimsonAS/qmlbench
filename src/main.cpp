@@ -147,7 +147,7 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
     Options::instance.isSubProcess = parser.isSet(subprocessOption);
 
     if (parser.isSet(jsonOption)) {
-        Options::instance.onlyPrintJson = true;
+        Options::instance.printJsonToStdout = true;
     }
 
     if (parser.isSet(helpOption) || parser.positionalArguments().size() == 0) {
@@ -295,7 +295,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
             QStringList lines = QString::fromLatin1(p->readAllStandardOutput()).split("\n");
             for (const QString &ln : lines) {
-                if (!Options::instance.onlyPrintJson) {
+                if (!Options::instance.printJsonToStdout) {
                     if (!ln.isEmpty())
                         std::cout << "SUB: " << ln.toLocal8Bit().constData() << "\n";
                 } else {
@@ -324,7 +324,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         }
         delete p;
 
-        if (Options::instance.onlyPrintJson) {
+        if (Options::instance.printJsonToStdout) {
             // Turn stdout into a JSON object and merge our results into the
             // final ones.
             QJsonParseError jerr;

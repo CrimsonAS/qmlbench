@@ -79,8 +79,8 @@ void BenchmarkRunner::start()
 {
     Benchmark &bm = Options::instance.benchmarks.first();
 
-    if (bm.operationsPerFrame.size() == 0 && !Options::instance.onlyPrintJson)
-        std::cout << "running: " << bm.fileName.toStdString() << std::endl;
+    if (bm.operationsPerFrame.size() == 0)
+        std::cerr << "running: " << bm.fileName.toStdString() << std::endl;
 
     m_component = new QQmlComponent(m_view->engine(), bm.fileName);
     if (m_component->status() != QQmlComponent::Ready) {
@@ -102,8 +102,7 @@ void BenchmarkRunner::start()
 
 void BenchmarkRunner::finished()
 {
-    if (!Options::instance.onlyPrintJson)
-        std::cout << "All done..." << std::endl;
+    std::cerr << "All done..." << std::endl;
     qApp->quit();
 }
 
