@@ -79,8 +79,7 @@ Item {
             property real t;
             NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
             property bool inv;
-            property int countDown: originalCountDown;
-            property int originalCountDown: 5
+            property int countDown: 5;
             onTChanged: {
                 // Run a small countdown for the first few frames so that
                 // benchmarks that test  animation (without creation) has a
@@ -101,7 +100,6 @@ Item {
             interval: benchmark.frameCountInterval
             onTriggered: {
                 benchmark.recordOperationsPerFrame(root.count);
-                swapTest.countDown = swapTest.originalCountDown
             }
         }
 
