@@ -101,7 +101,7 @@ Item {
             interval: benchmark.frameCountInterval
             onTriggered: {
                 benchmark.recordOperationsPerFrame(root.count);
-                countDown = originalCountDown
+                swapTest.countDown = swapTest.originalCountDown
             }
         }
 
