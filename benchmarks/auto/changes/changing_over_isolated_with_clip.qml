@@ -1,5 +1,8 @@
 import QtQuick 2.0
 
+// Tests that a single item changing in one subtree, and many items in another
+// tree, do not have bad performance when both subtrees are isolated with
+// "clip: true".
 Item {
     id: root;
     property int count: 100;
