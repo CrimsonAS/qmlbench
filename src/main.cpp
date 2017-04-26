@@ -126,6 +126,10 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
                                    QStringLiteral("-1"));
     parser.addOption(countOption);
 
+    QCommandLineOption destroyViewOption(QStringLiteral("destroy-view"),
+                                         QStringLiteral("Destroys the QQuickView between each test run. Use it as a debug aid, do not benchmark with this!"));
+    parser.addOption(destroyViewOption);
+
     QCommandLineOption frameCountInterval(QStringLiteral("framecount-interval"),
                                           QStringLiteral("Sets the interval used to count frames in milliseconds. Only applicable to 'frame-count' shell."),
                                           QStringLiteral("count"),
@@ -165,6 +169,7 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
     Options::instance.count = parser.value(countOption).toInt();
     Options::instance.hardwareMultiplier = parser.value(hardwareMultiplierOption).toDouble();
     Options::instance.frameCountInterval = parser.value(frameCountInterval).toInt();
+    Options::instance.destroyViewEachRun = parser.isSet(destroyViewOption);
 
     QSize size(parser.value(widthOption).toInt(),
                parser.value(heightOption).toInt());

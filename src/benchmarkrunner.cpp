@@ -47,12 +47,9 @@ BenchmarkRunner::~BenchmarkRunner()
     delete m_view;
 }
 
-bool BenchmarkRunner::execute()
+void BenchmarkRunner::createView()
 {
-    if (Options::instance.benchmarks.size() == 0)
-        return false;
-    QTimer::singleShot(Options::instance.delayedStart, this, SLOT(start()));
-
+    Q_ASSERT(m_view == 0);
     m_view = new QQuickView();
     // Make sure proper fullscreen is possible on OSX
     m_view->setFlags(Qt::Window
@@ -71,7 +68,20 @@ bool BenchmarkRunner::execute()
     else
         m_view->show();
     m_view->raise();
+}
 
+bool BenchmarkRunner::execute()
+{
+    if (Options::instance.benchmarks.size() == 0)
+        return false;
+
+    if (Options::instance.destroyViewEachRun) {
+        qWarning() << "Deleting the view. Remember, you should only do this as a debugging aid!";
+        delete m_view;
+        m_view = 0;
+    }
+    createView();
+    QTimer::singleShot(Options::instance.delayedStart, this, SLOT(start()));
     return true;
 }
 
@@ -153,10 +163,14 @@ void BenchmarkRunner::recordOperationsPerFrame(qreal ops)
     bool restart = false;
     restart = bm.operationsPerFrame.size() < Options::instance.repeat;
 
-    if (restart)
-        QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection);
-    else
+    if (restart) {
+        if (Options::instance.destroyViewEachRun)
+            QMetaObject::invokeMethod(this, "execute", Qt::QueuedConnection); // recreates the view too
+        else
+            QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection); // recreates the view too
+    } else {
         QMetaObject::invokeMethod(this, "finished", Qt::QueuedConnection);
+    }
 }
 
 

@@ -57,7 +57,7 @@ public:
     BenchmarkRunner();
     ~BenchmarkRunner();
 
-    bool execute();
+    void createView();
 
     QQuickView *view() const { return m_view; }
     QQmlComponent *component() const { return m_component; }
@@ -76,6 +76,7 @@ public:
     double hardwareMultiplier() const { return Options::instance.hardwareMultiplier; }
 
 public slots:
+    bool execute();
     void recordOperationsPerFrame(qreal count);
     void abort();
 
