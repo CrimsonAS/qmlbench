@@ -50,6 +50,7 @@ struct Options
         , fpsOverride(0)
         , windowSize(800, 600)
         , hardwareMultiplier(1.0)
+        , destroyViewEachRun(false)
     {
     }
 
@@ -70,6 +71,7 @@ struct Options
     QSize windowSize;
     double hardwareMultiplier;
     QList<Benchmark> benchmarks;
+    bool destroyViewEachRun;
 
     static Options instance;
 };
