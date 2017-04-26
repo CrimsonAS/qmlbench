@@ -1,5 +1,15 @@
 import QtQuick 2.0
 
+// Tests that a single item changing in one subtree, and many items in another
+// tree, do not have bad performance when both subtrees are isolated with
+// "clip: true".
+//
+// Different from changing_over_isolated_with_clip, we also rotate, as this
+// can't just be clipped with scissoring.
+//
+// TODO: consider whether it makes sense to test this as a specific render
+// test, changing_over_isolated_with_clip covers the clipping part well enough
+// that perhaps we don't need this approach. Useful for now, though.
 Item {
     id: root;
     property int count: 1000;
@@ -19,10 +29,10 @@ Item {
                 color: Qt.hsla(Math.random(), 0.9, 0.4)
                 width: 20
                 height: 20
-                clip: true
-                rotation: 10
                 x: Math.random() * root.width
                 y: Math.random() * root.height
+                clip: true
+                rotation: 10
 
                 Text {
                     color: "white"
