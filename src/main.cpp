@@ -38,6 +38,7 @@
 #include "options.h"
 #include "resultrecorder.h"
 #include "qcommandlineparser.h"
+#include "testmodel.h"
 
 Options Options::instance;
 
@@ -364,6 +365,7 @@ int main(int argc, char **argv)
     qmlRegisterType<QQuickView>();
     qmlRegisterType(QUrl("qrc:/Benchmark.qml"), "QmlBench", 1, 0, "Benchmark");
     qmlRegisterType(QUrl("qrc:/CreationBenchmark.qml"), "QmlBench", 1, 0, "CreationBenchmark");
+    qmlRegisterType<TestModel>("QmlBench", 1, 0, "TestModel");
 
     QScopedPointer<QCoreApplication> app;
 

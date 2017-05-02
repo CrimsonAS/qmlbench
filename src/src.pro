@@ -7,13 +7,15 @@ lessThan(QT_MAJOR_VERSION, 5): error("This benchmark tool is for QtQuick 2 only,
 SOURCES += \
     main.cpp \
     resultrecorder.cpp \
-    benchmarkrunner.cpp
+    benchmarkrunner.cpp \
+    testmodel.cpp
 
 HEADERS += \
     resultrecorder.h \
     benchmarkrunner.h \
     benchmark.h \
-    options.h
+    options.h \
+    testmodel.h
 
 equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 2) {
     SOURCES += \
