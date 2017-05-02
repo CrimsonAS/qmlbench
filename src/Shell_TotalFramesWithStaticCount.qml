@@ -77,7 +77,13 @@ Item {
             width: parent.height
             height: parent.height
             property real t;
-            NumberAnimation on t { from: 0; to: 1; duration: 1000; loops: Animation.Infinite }
+            NumberAnimation on t {
+                id: swapAnimation
+                from: 0;
+                to: 1;
+                duration: 1000;
+                loops: Animation.Infinite
+            }
             property bool inv;
             property int countDown: 5;
             onTChanged: {
@@ -99,6 +105,10 @@ Item {
             id: fpsTimer
             interval: benchmark.frameCountInterval
             onTriggered: {
+                // Stop the 't' ticker. Otherwise we may accidentally begin one
+                // more interval, since recordOperationsPerFrame will quit us on
+                // a queued signal.
+                swapAnimation.running = false
                 benchmark.recordOperationsPerFrame(root.count);
             }
         }
