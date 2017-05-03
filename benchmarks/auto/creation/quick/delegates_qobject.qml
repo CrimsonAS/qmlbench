@@ -8,6 +8,7 @@ Benchmark {
     count: 50;
     staticCount: 10000;
 
+    property var items;
     onTChanged: {
         allocate();
     }
@@ -19,9 +20,15 @@ Benchmark {
     }
 
     function allocate() {
+        if (items && items.length) {
+            for (var i=0; i<items.length; ++i)
+                items[i].destroy();
+        }
+        items = [];
+
         for (var i=0; i<root.count; ++i) {
             var object = component.createObject();
-            object.destroy();
+            items.push(object);
         }
     }
 }
