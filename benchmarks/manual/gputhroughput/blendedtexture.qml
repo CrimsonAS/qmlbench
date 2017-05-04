@@ -1,5 +1,7 @@
 import QtQuick 2.0
 
+// Stacks x number of alphablended textures on top of each other.
+// Rouch test of fill and texel rate.
 Item {
     id: root;
     property int count: 8;

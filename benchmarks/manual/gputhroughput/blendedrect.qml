@@ -1,5 +1,7 @@
 import QtQuick 2.0
 
+// Stacks x number of alphablended rectangles on top of each other.
+// Rough test of fillrate.
 Item {
     id: root;
     property int count: 10

@@ -1,6 +1,10 @@
 import QtQuick 2.2
 import QtGraphicalEffects 1.0
 
+// This benchmark is added to test how feasible live blurring
+// is. Live blurring is an extreme fillrate test and is only something that
+// should be considered on gaming and industrial hardware. And then you still
+// probably want to cheat :p
 Item {
     id: root;
     property int count: 8

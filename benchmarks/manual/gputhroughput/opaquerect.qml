@@ -1,5 +1,8 @@
 import QtQuick 2.0
 
+// Stacks x number of opaque rectangles on top of each other.
+// Will go a lot higher than blendedrect if the target hardware supprts
+// [early-z](https://en.wikipedia.org/?title=Z-buffering)
 Item {
     id: root;
     property int count: 16;

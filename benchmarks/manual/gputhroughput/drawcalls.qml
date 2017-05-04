@@ -1,5 +1,15 @@
 import QtQuick 2.0
 
+// Take this one with a grain of salt. Graphics drivers have a
+// lot of overhead in how drawing is set up, and seeing an individual GL call take
+// up to a millisecond (yes, a millisecond) is not uncommon. This test is a highly
+// constructed case to try to get a rough ballpart of how many discrete draw calls
+// the GL stack is capable of.
+//
+// This is mostly important if you end up with an application that fails to do
+// batching in the scene graph renderer, but as this situation will typically
+// have many other performance problems, this may not be a useful benchmark for
+// the most part.
 Item {
     id: root;
 
