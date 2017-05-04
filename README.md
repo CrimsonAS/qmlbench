@@ -85,7 +85,7 @@ argument, where N is the staticCount you want to use instead.
 The static-count shell is most useful for profiling, as it will repeat the same
 operation continuously.
 
-##the qmlbench tool
+## the qmlbench tool
 
 It comes with a number of default settings which aim to help give stable numbers:
 
