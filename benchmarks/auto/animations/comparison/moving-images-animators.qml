@@ -1,6 +1,8 @@
 import QtQuick 2.2
 import QmlBench 1.0
 
+// Move images around using Animator types, to be compared with a number of
+// other similar ways to move them around.
 Benchmark {
     id: root;
 

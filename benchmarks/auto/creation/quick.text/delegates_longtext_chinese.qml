@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
+// Tests the creation of Text with a long string of chinese text.
+// This is similar to longtext.qml, but it has a lot more glyphs.
 CreationBenchmark {
     id: root;
     count: 20;

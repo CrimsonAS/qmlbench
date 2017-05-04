@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
+// Tests the creation of items with a non-recursive function binding
 CreationBenchmark {
     id: root;
     count: 50;

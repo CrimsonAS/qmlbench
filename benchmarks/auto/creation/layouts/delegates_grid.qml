@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
+// Tests the creation of a Grid, to be compared with GridLayout
 CreationBenchmark {
     id: root;
     count: 20;

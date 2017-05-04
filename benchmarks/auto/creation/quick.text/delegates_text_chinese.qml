@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
+// Tests the creation of Text with a short string of chinese text
+// This is similar to delegates_text, except with more glyphs
 CreationBenchmark {
     id: root;
     count: 50;

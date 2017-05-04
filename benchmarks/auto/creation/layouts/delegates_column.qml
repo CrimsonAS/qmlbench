@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
+// Tests the creation of a Column, to be compared with ColumnLayout.
 CreationBenchmark {
     id: root;
     count: 20;
