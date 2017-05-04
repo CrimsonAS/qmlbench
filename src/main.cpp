@@ -365,6 +365,7 @@ int main(int argc, char **argv)
     qmlRegisterType<QQuickView>();
     qmlRegisterType(QUrl("qrc:/Benchmark.qml"), "QmlBench", 1, 0, "Benchmark");
     qmlRegisterType(QUrl("qrc:/CreationBenchmark.qml"), "QmlBench", 1, 0, "CreationBenchmark");
+    qmlRegisterType(QUrl("qrc:/V8Benchmark.qml"), "QmlBench", 1, 0, "V8Benchmark");
     qmlRegisterType<TestModel>("QmlBench", 1, 0, "TestModel");
 
     QScopedPointer<QCoreApplication> app;

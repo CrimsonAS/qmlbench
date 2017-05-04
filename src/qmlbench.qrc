@@ -6,5 +6,7 @@
     <file>Shell_TotalFramesWithStaticCount.qml</file>
     <file>Benchmark.qml</file>
     <file>CreationBenchmark.qml</file>
+    <file>V8Benchmark.qml</file>
+    <file>3rdparty/v8-bench.js</file>
   </qresource>
 </RCC>
