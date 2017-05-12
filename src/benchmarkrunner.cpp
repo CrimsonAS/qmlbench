@@ -44,7 +44,6 @@ BenchmarkRunner::BenchmarkRunner()
 
 BenchmarkRunner::~BenchmarkRunner()
 {
-    delete m_view;
 }
 
 void BenchmarkRunner::createView()
@@ -112,6 +111,8 @@ void BenchmarkRunner::start()
 
 void BenchmarkRunner::finished()
 {
+    delete m_view;
+    m_view = 0;
     std::cerr << "All done..." << std::endl;
     qApp->quit();
 }
