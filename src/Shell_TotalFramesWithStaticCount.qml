@@ -86,33 +86,31 @@ Item {
             }
             property bool inv;
             property int countDown: 5;
+            property var startedCounting
             onTChanged: {
                 // Run a small countdown for the first few frames so that
                 // benchmarks that test  animation (without creation) has a
                 // chance to stabilize before we start measuring
-                if (countDown > 0)
+                if (countDown > 0) {
                     --countDown;
-                else if (!fpsTimer.running)
-                    fpsTimer.running = true;
-                else
+                } else if (countDown == 0) {
+                    --countDown;
+                    startedCounting = Date.now();
+                }
+
+                if (Date.now() - startedCounting >= benchmark.frameCountInterval) {
+                    // Stop the 't' ticker. Otherwise we may accidentally begin one
+                    // more interval, since recordOperationsPerFrame will quit us on
+                    // a queued signal.
+                    swapAnimation.running = false
+                    benchmark.recordOperationsPerFrame(root.count);
+                } else {
                     ++root.count;
-                inv = !inv;
+                    inv = !inv;
+                }
             }
             color: inv ? "red" : "blue"
         }
-
-        Timer {
-            id: fpsTimer
-            interval: benchmark.frameCountInterval
-            onTriggered: {
-                // Stop the 't' ticker. Otherwise we may accidentally begin one
-                // more interval, since recordOperationsPerFrame will quit us on
-                // a queued signal.
-                swapAnimation.running = false
-                benchmark.recordOperationsPerFrame(root.count);
-            }
-        }
-
     }
 
 }
