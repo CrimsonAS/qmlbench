@@ -27,7 +27,7 @@ Benchmark {
         items = [];
 
         for (var i=0; i<root.count; ++i) {
-            var object = component.createObject();
+            var object = component.createObject(root);
             items.push(object);
         }
     }
