@@ -298,7 +298,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
                     break;
                 QByteArray ln = stdErrBuf.left(nlIdx);
                 stdErrBuf = stdErrBuf.right(stdErrBuf.size() - nlIdx - 1);
-                std::cerr << "SUB: " << ln.constData() << "\n";
+                std::cerr << ln.constData() << "\n";
             }
         });
 
@@ -315,7 +315,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
                     break;
                 QByteArray ln = stdOutBuf.left(nlIdx);
                 stdOutBuf = stdOutBuf.right(stdOutBuf.size() - nlIdx - 1);
-                std::cout << "SUB: " << ln.constData() << "\n";
+                std::cout << ln.constData() << "\n";
             }
         });
 
@@ -323,9 +323,9 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
             static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
             [=](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
             // Flush the leftovers (if any)
-            std::cerr << "SUB: " << stdErrBuf.constData() << "\n";
+            std::cerr << stdErrBuf.constData() << "\n";
             if (!Options::instance.printJsonToStdout)
-                std::cout << "SUB: " << stdOutBuf.constData() << "\n";
+                std::cout << stdOutBuf.constData() << "\n";
         });
 
         if (ret == 0) {
