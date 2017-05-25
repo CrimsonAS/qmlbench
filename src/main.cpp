@@ -288,26 +288,44 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         sanitizedArgCopy.append(b.fileName);
 
         QProcess *p = new QProcess;
+        QByteArray stdErrBuf;
         QObject::connect(p, &QProcess::readyReadStandardError, p, [&]() {
-            QStringList lines = QString::fromLatin1(p->readAllStandardError()).split("\n");
-            for (const QString &ln : lines) {
-                if (!ln.isEmpty())
-                    std::cerr << "SUB: " << ln.toLocal8Bit().constData() << "\n";
+            stdErrBuf += p->readAllStandardError();
+            int nlIdx = 0;
+            forever {
+                nlIdx = stdErrBuf.indexOf('\n');
+                if (nlIdx == -1)
+                    break;
+                QByteArray ln = stdErrBuf.left(nlIdx);
+                stdErrBuf = stdErrBuf.right(stdErrBuf.size() - nlIdx - 1);
+                std::cerr << "SUB: " << ln.constData() << "\n";
             }
         });
 
-        QByteArray jsonOutput;
+        QByteArray stdOutBuf;
 
         QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
-            QStringList lines = QString::fromLatin1(p->readAllStandardOutput()).split("\n");
-            for (const QString &ln : lines) {
-                if (!Options::instance.printJsonToStdout) {
-                    if (!ln.isEmpty())
-                        std::cout << "SUB: " << ln.toLocal8Bit().constData() << "\n";
-                } else {
-                    jsonOutput += ln.toUtf8();
-                }
+            stdOutBuf += QString::fromLocal8Bit(p->readAllStandardOutput());
+            if (Options::instance.printJsonToStdout)
+                return;
+            int nlIdx = 0;
+            forever {
+                nlIdx = stdOutBuf.indexOf('\n');
+                if (nlIdx == -1)
+                    break;
+                QByteArray ln = stdOutBuf.left(nlIdx);
+                stdOutBuf = stdOutBuf.right(stdOutBuf.size() - nlIdx - 1);
+                std::cout << "SUB: " << ln.constData() << "\n";
             }
+        });
+
+        QObject::connect(p,
+            static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+            [=](int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/) {
+            // Flush the leftovers (if any)
+            std::cerr << "SUB: " << stdErrBuf.constData() << "\n";
+            if (!Options::instance.printJsonToStdout)
+                std::cout << "SUB: " << stdOutBuf.constData() << "\n";
         });
 
         if (ret == 0) {
@@ -334,7 +352,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
             // Turn stdout into a JSON object and merge our results into the
             // final ones.
             QJsonParseError jerr;
-            QJsonDocument d = QJsonDocument::fromJson(jsonOutput, &jerr);
+            QJsonDocument d = QJsonDocument::fromJson(stdOutBuf, &jerr);
             if (d.isNull()) {
                 qWarning() << "Can't parse JSON for result for " << b.fileName;
                 qWarning() << "Error: " << jerr.errorString();
