@@ -1,0 +1,26 @@
+import QtQuick 2.4
+import QmlBench 1.0
+
+// Tests the creation of ShaderEffect with custom properties,
+// as these add additional cost
+CreationBenchmark {
+    id: root;
+    count: 50;
+    staticCount: 2500;
+
+    Image {
+        id: sourceImage
+        source: "../../../../shared/butterfly-wide.png"
+    }
+
+    delegate: ShaderEffect {
+        x: Math.random() * (root.width - width)
+        y: Math.random() * (root.height - height)
+        width: sourceImage.width
+        height: sourceImage.height
+        supportsAtlasTextures: true
+        property var source: sourceImage
+    }
+}
+
+
