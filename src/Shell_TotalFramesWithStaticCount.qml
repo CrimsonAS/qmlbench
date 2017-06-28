@@ -93,6 +93,7 @@ Item {
                 // chance to stabilize before we start measuring
                 if (countDown > 0) {
                     --countDown;
+                    return;
                 } else if (countDown == 0) {
                     --countDown;
                     startedCounting = Date.now();
