@@ -84,6 +84,12 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
                                    QStringLiteral("2000"));
     parser.addOption(delayOption);
 
+    QCommandLineOption timeoutOption(QStringLiteral("timeout"),
+                                     QStringLiteral("Sets the maximum time in milliseconds that a test is allowed to run before it is aborted. The default is 10 minutes. Set this to -1 to disable the timeout."),
+                                     QStringLiteral("timeout"),
+                                     QStringLiteral("600000"));
+    parser.addOption(timeoutOption);
+
     QCommandLineOption widthOption(QStringLiteral("width"),
                                    QStringLiteral("Window Width"),
                                    QStringLiteral("width"),
@@ -171,6 +177,7 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
     Options::instance.hardwareMultiplier = parser.value(hardwareMultiplierOption).toDouble();
     Options::instance.frameCountInterval = parser.value(frameCountInterval).toInt();
     Options::instance.destroyViewEachRun = parser.isSet(destroyViewOption);
+    Options::instance.timeout = parser.value(timeoutOption).toInt();
 
     QSize size(parser.value(widthOption).toInt(),
                parser.value(heightOption).toInt());
@@ -330,7 +337,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
 
         if (ret == 0) {
             p->start(app.arguments().first(), sanitizedArgCopy);
-            if (!p->waitForFinished(60*10*1000)) {
+            if (!p->waitForFinished(Options::instance.timeout)) {
                 qWarning() << "Test hung (probably indefinitely) indefinitely when run with arguments: " << sanitizedArgCopy.join(' ');
                 qWarning("Aborting test run, as this probably means benchmark setup is screwed up or the hardware needs resetting!");
 

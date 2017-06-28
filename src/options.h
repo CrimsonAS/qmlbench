@@ -51,6 +51,7 @@ struct Options
         , windowSize(800, 600)
         , hardwareMultiplier(1.0)
         , destroyViewEachRun(false)
+        , timeout(10*60*1000)
     {
     }
 
@@ -72,6 +73,7 @@ struct Options
     double hardwareMultiplier;
     QList<Benchmark> benchmarks;
     bool destroyViewEachRun;
+    int timeout;
 
     static Options instance;
 };
