@@ -8,8 +8,8 @@ CreationBenchmark {
     staticCount: 1000;
 
     delegate: Text {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         text: "OATS FLAVOUR WAY"
         font.family: "Times New Roman"
         font.preferShaping: false

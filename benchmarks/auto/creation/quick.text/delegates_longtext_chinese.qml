@@ -8,8 +8,8 @@ CreationBenchmark {
     count: 20;
     staticCount: 500;
     delegate: Text {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         width: root.width * 0.33
         wrapMode: Text.WordWrap
         font.pixelSize: 10

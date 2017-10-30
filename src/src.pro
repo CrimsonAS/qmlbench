@@ -8,14 +8,16 @@ SOURCES += \
     main.cpp \
     resultrecorder.cpp \
     benchmarkrunner.cpp \
-    testmodel.cpp
+    testmodel.cpp \
+    qmlbench.cpp
 
 HEADERS += \
     resultrecorder.h \
     benchmarkrunner.h \
     benchmark.h \
     options.h \
-    testmodel.h
+    testmodel.h \
+    qmlbench.h
 
 equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 2) {
     SOURCES += \

@@ -8,8 +8,8 @@ CreationBenchmark {
     count: 20
     staticCount: 1000
     delegate: Button {
-        x: Math.random() * root.width - width
-        y: Math.random() * root.height - height
+        x: QmlBench.getRandom() * root.width - width
+        y: QmlBench.getRandom() * root.height - height
         text: "Button"
         down: index % 2
     }

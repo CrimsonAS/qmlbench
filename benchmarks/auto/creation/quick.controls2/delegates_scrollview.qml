@@ -8,8 +8,8 @@ CreationBenchmark {
     count: 20
     staticCount: 250
     delegate: ScrollView {
-        x: Math.random() * root.width - width
-        y: Math.random() * root.height - height
+        x: QmlBench.getRandom() * root.width - width
+        y: QmlBench.getRandom() * root.height - height
         width: 100
         height: 100
         Item {

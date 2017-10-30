@@ -8,8 +8,8 @@ CreationBenchmark {
     count: 20;
     staticCount: 1000;
     delegate: ColumnLayout {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         Rectangle {
             width: 50
             height: 10

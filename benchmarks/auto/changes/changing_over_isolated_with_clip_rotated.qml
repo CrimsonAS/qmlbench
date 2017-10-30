@@ -26,11 +26,11 @@ Item {
             model: root.count
 
             Rectangle {
-                color: Qt.hsla(Math.random(), 0.9, 0.4)
+                color: Qt.hsla(QmlBench.getRandom(), 0.9, 0.4)
                 width: 20
                 height: 20
-                x: Math.random() * root.width
-                y: Math.random() * root.height
+                x: QmlBench.getRandom() * root.width
+                y: QmlBench.getRandom() * root.height
                 clip: true
                 rotation: 10
 

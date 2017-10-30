@@ -13,8 +13,8 @@ Item {
         id: repeater
         model: root.count
         Text {
-            x: Math.random() * root.width
-            y: Math.random() * root.height
+            x: QmlBench.getRandom() * root.width
+            y: QmlBench.getRandom() * root.height
             text: index == 0 ? Math.round(t) : index;
         }
     }

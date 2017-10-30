@@ -8,8 +8,8 @@ CreationBenchmark {
     count: 20
     staticCount: 250
     delegate: TabBar {
-        x: Math.random() * root.width - width
-        y: Math.random() * root.height - height
+        x: QmlBench.getRandom() * root.width - width
+        y: QmlBench.getRandom() * root.height - height
         currentIndex: index / root.staticCount * count
         TabButton {
             text: "Tab1"

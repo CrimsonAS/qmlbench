@@ -9,8 +9,8 @@ CreationBenchmark {
     count: 50
     staticCount: 5000
     delegate: Item {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         width: 30
         height: 15
     }

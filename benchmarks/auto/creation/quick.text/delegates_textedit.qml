@@ -7,8 +7,8 @@ CreationBenchmark {
     count: 20;
     staticCount: 1000;
     delegate: TextEdit {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         text: "Qt Quick!"
         font.pixelSize: 10
     }

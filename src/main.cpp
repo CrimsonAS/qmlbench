@@ -39,6 +39,7 @@
 #include "resultrecorder.h"
 #include "qcommandlineparser.h"
 #include "testmodel.h"
+#include "qmlbench.h"
 
 Options Options::instance;
 
@@ -381,6 +382,11 @@ int runSubProcess(QGuiApplication &app)
     return app.exec();
 }
 
+static QObject *qmlbench_singleton_provider(QQmlEngine *, QJSEngine *)
+{
+    return new QmlBench();
+}
+
 int main(int argc, char **argv)
 {
     // We need to do this early on, so there's no interference from the shared
@@ -392,6 +398,7 @@ int main(int argc, char **argv)
     qmlRegisterType(QUrl("qrc:/CreationBenchmark.qml"), "QmlBench", 1, 0, "CreationBenchmark");
     qmlRegisterType(QUrl("qrc:/V8Benchmark.qml"), "QmlBench", 1, 0, "V8Benchmark");
     qmlRegisterType<TestModel>("QmlBench", 1, 0, "TestModel");
+    qmlRegisterSingletonType<QmlBench>("QmlBench", 1, 0, "QmlBench", qmlbench_singleton_provider);
 
     QScopedPointer<QCoreApplication> app;
 

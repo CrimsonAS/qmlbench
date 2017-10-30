@@ -8,8 +8,8 @@ CreationBenchmark {
     count: 20
     staticCount: 1000
     delegate: ScrollBar {
-        x: Math.random() * root.width - width
-        y: Math.random() * root.height - height
+        x: QmlBench.getRandom() * root.width - width
+        y: QmlBench.getRandom() * root.height - height
         height: 100
         size: index / root.staticCount
         pressed: index % 2

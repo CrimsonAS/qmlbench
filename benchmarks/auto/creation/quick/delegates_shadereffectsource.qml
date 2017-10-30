@@ -7,8 +7,8 @@ CreationBenchmark {
     count: 50
     staticCount: 500
     delegate: ShaderEffectSource {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         width: 30
         height: 15
         sourceItem: sourceRectItem

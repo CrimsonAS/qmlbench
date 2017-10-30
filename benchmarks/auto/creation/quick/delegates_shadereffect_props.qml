@@ -14,8 +14,8 @@ CreationBenchmark {
     }
 
     delegate: ShaderEffect {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         width: sourceImage.width
         height: sourceImage.height
         supportsAtlasTextures: true

@@ -9,8 +9,8 @@ CreationBenchmark {
     staticCount: 2500;
 
     delegate: Image {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         source: "../../../../shared/alpha.png"
         width: 20
         height: 20

@@ -21,7 +21,7 @@ Item {
             var str = "" + Math.floor( t * 1000 ) / 1000;
 
             for (var i = 0; i < root.count; ++i) {
-                ctx.fillText(str, Math.random() * root.width, Math.random() * root.height);
+                ctx.fillText(str, QmlBench.getRandom() * root.width, QmlBench.getRandom() * root.height);
             }
         }
     }

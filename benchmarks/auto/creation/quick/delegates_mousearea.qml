@@ -7,8 +7,8 @@ CreationBenchmark {
     count: 50
     staticCount: 2500
     delegate: MouseArea {
-        x: Math.random() * (root.width - width)
-        y: Math.random() * (root.height - height)
+        x: QmlBench.getRandom() * (root.width - width)
+        y: QmlBench.getRandom() * (root.height - height)
         hoverEnabled: true
         width: 30
         height: 15
