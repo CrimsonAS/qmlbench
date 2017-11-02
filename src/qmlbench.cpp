@@ -28,7 +28,7 @@
 
 #include "qmlbench.h"
 
-#define PREGENERATED_COUNT 10000
+#define PREGENERATED_COUNT 10001
 
 QmlBench::QmlBench(QObject *parent)
     : QObject(parent)
