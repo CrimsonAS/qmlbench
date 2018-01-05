@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QmlBench 1.0
 
 // Testing the performance of changing 1 Text in a scene vs all (changing_texts)
 Item {
