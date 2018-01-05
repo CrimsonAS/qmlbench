@@ -156,7 +156,7 @@ void ResultRecorder::recordOperationsPerFrameAverage(qreal ops, int samples, qre
     benchMap["samples-total"] = samples; // compatibility
     benchMap["standard-deviation"] = stddev;
     benchMap["standard-deviation-all-samples"] = stddev; // compatibility
-    benchMap["standard-error"] = stddev / sqrt(samples);
+    benchMap["standard-error"] = stddev / std::sqrt(samples);
     benchMap["coefficient-of-variation"] = stddev / ops;
     benchMap["median"] = median;
 

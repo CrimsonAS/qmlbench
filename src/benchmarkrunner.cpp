@@ -131,7 +131,7 @@ qreal stddev(qreal avg, const QList<qreal> &list)
         dev += (v - avg) * (v - avg);
 
     // Note: - 1 is intentional!
-    return ::sqrt(dev / (list.size() - 1));
+    return std::sqrt(dev / (list.size() - 1));
 }
 
 qreal average(const QList<qreal> &list)
