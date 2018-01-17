@@ -120,3 +120,30 @@ You can also run a subset of them by providing that directory instead:
 
 Or even individual tests, by passing the filenames directly.
 
+## the results
+
+Here's an example of running `src/qmlbench --shell frame-count /Users/mitch/dev/qmlbench/benchmarks/auto/creation/quick.controls2/delegates_tumbler.qml` on macOS:
+
+    ID:
+    OS:          macOS High Sierra (10.13)
+    QPA:         cocoa
+    GL_VENDOR:   ATI Technologies Inc.
+    GL_RENDERER: AMD Radeon Pro 460 OpenGL Engine
+    GL_VERSION:  2.1 ATI-1.60.24
+    running: /Users/mitch/dev/qmlbench/benchmarks/auto/creation/quick.controls2/delegates_tumbler.qml
+        153 frames
+        152 frames
+        154 frames
+        154 frames
+        153 frames
+        Average: 153.2  frames; MedianAll=153; StdDev=0.83666, CoV=0.00546123
+    All done...
+
+The test was repeated 5 times, and for each run, the frames are printed. For the frame-count shell, the higher the number of frames is, the better.
+
+- "Average: 153.2 frames" - this is the average of each run.
+- "MedianAll=153" - the [median](https://en.wikipedia.org/wiki/Median) of all of the runs:
+   (152, 153, 153, 154, 154)
+               ^
+- "StdDev=0.83666" - the [standard deviation](https://en.wikipedia.org/wiki/Standard_deviation). The lower the better.
+- "CoV=0.00546123" - the [coefficient of variation](https://en.wikipedia.org/wiki/Coefficient_of_variation). The lower the better; a general guide is to aim for less than 5% CoV.
