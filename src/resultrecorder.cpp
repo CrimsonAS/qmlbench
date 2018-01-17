@@ -167,7 +167,6 @@ void ResultRecorder::recordOperationsPerFrameAverage(qreal ops, int samples, qre
         opsString = " ops/frame";
 
     std::cerr << "    Average: " << ops << " " << opsString << ";"
-              << " using " << " samples"
               << "; MedianAll=" << median
               << "; StdDev=" << stddev
               << ", CoV=" << (stddev / ops)
