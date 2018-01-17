@@ -23,7 +23,7 @@ the results!
 
 # shells
 
-qmlbench provides a number of "shells", which are the contaners for the
+qmlbench provides a number of "shells", which are the containers for the
 benchmarking logic. Different shells work in different ways, and might measure
 different things.
 
