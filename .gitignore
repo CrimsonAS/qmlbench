@@ -8,3 +8,4 @@ src/qmlbench
 tools/decidefps/decidefps
 .qmake.stash
 Makefile
+*.pro.user
