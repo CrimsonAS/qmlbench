@@ -2,6 +2,12 @@ import QtQuick 2.0
 import QmlBench 1.0
 
 // Tests the creation of items with a non-recursive function binding
+// Note: Through an unfortunate oversight, this benchmark is mildly broken.
+// The loop never updates the 'x' value. However, this benchmark has already
+// given some insights, and changing it (as any other benchmark) would
+// invalidate past data causing confusion, so it has not been altered.
+//
+// See sum10k_fixed for a working version.
 CreationBenchmark {
     id: root;
     count: 50;
