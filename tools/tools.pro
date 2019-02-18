@@ -1,3 +1,4 @@
 TEMPLATE = subdirs
 SUBDIRS = \
-    decidefps
+    decidefps \
+    compareresults
