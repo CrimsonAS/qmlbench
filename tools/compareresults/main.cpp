@@ -60,6 +60,10 @@ static QJsonObject loadFile(const QString &fileName, QString *error)
 
 struct Result
 {
+    Result() {}
+    Result(const QString &name, double differenceInPercent)
+        : name(name), differenceInPercent(differenceInPercent)
+    {}
     QString name;
     double differenceInPercent = 0;
 };
@@ -158,7 +162,7 @@ int main(int argc, char **argv)
             printf("%s: regression by %.2f%%\n", qPrintable(testName), differenceInPercent);
         }
 
-        differencesInPercent << Result{testName, differenceInPercent};
+        differencesInPercent << Result(testName, differenceInPercent);
     }
 
     auto minMax = std::minmax_element(differencesInPercent.constBegin(), differencesInPercent.constEnd(), [](const auto &lhs, const auto &rhs) {
