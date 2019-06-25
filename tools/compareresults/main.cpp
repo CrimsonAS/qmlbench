@@ -165,7 +165,7 @@ int main(int argc, char **argv)
         differencesInPercent << Result(testName, differenceInPercent);
     }
 
-    auto minMax = std::minmax_element(differencesInPercent.constBegin(), differencesInPercent.constEnd(), [](const auto &lhs, const auto &rhs) {
+    auto minMax = std::minmax_element(differencesInPercent.constBegin(), differencesInPercent.constEnd(), [](const Result &lhs, const Result &rhs) {
         return lhs.differenceInPercent < rhs.differenceInPercent;
     });
 
