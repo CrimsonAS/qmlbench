@@ -147,3 +147,7 @@ The test was repeated 5 times, and for each run, the frames are printed. For the
                ^
 - "StdDev=0.83666" - the [standard deviation](https://en.wikipedia.org/wiki/Standard_deviation). The lower the better.
 - "CoV=0.00546123" - the [coefficient of variation](https://en.wikipedia.org/wiki/Coefficient_of_variation). The lower the better; a general guide is to aim for less than 5% CoV.
+
+## Creating benchmarks
+
+See [Benchmarks/benchmarks.md](./benchmarks/benchmarks.md)
