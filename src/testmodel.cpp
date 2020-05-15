@@ -75,7 +75,7 @@ void TestModel::setRowNumber(int rowNumber)
         m_reals.append(i + 0.5);
         m_urls.append(QUrl(QString("http://example.org/some-thing-here/%1").arg(i)));
         m_jsValues.append(QJSValue(i)); // TODO: should we test object types (like strings?)
-        m_dateTimes.append(QDateTime(QDate(1995, 5, 20)).addSecs(i));
+        m_dateTimes.append(QDateTime(QDate(1995, 5, 20), QTime(0, 0)).addSecs(i));
         m_colors.append(QColor::fromHslF(std::fmod(0.57 * i, 1.0), 0.5, 0.5));
         m_sizes.append(QSize(i, i));
         m_points.append(QPoint(i, i));
