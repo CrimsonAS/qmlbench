@@ -41,7 +41,6 @@ CreationBenchmark {
         height: 15
         layer.enabled: true
         layer.effect: DropShadow {
-            samples: 15
         }
     }
 }

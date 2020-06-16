@@ -11,7 +11,7 @@ CreationBenchmark {
         y: QmlBench.getRandom() * (root.height - height)
         width: 30
         height: 15
-        fragmentShader: "void main() { gl_FragColor = vec4(1, 0, 0, 1); }"
+        fragmentShader: "red.frag.qsb"
     }
 }
 
