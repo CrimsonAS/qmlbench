@@ -313,7 +313,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         QByteArray stdOutBuf;
 
         QObject::connect(p, &QProcess::readyReadStandardOutput, p, [&]() {
-            stdOutBuf += QString::fromLocal8Bit(p->readAllStandardOutput());
+            stdOutBuf += p->readAllStandardOutput();
             if (Options::instance.printJsonToStdout)
                 return;
             int nlIdx = 0;
