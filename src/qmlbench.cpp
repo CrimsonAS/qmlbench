@@ -27,6 +27,7 @@
 ****************************************************************************/
 
 #include "qmlbench.h"
+#include <QRandomGenerator>
 
 #define PREGENERATED_COUNT 10001
 
@@ -36,7 +37,7 @@ QmlBench::QmlBench(QObject *parent)
 {
     m_pregeneratedRandomNumbers = new qreal[PREGENERATED_COUNT];
     for (int i = 0; i < PREGENERATED_COUNT; ++i)
-        m_pregeneratedRandomNumbers[i] = qrand() / qreal(RAND_MAX);
+        m_pregeneratedRandomNumbers[i] = QRandomGenerator().generateDouble();
 }
 
 QmlBench::~QmlBench()

@@ -393,7 +393,8 @@ int main(int argc, char **argv)
     // GL context.
     setupDefaultSurfaceFormat(argc, argv);
 
-    qmlRegisterType<QQuickView>();
+
+    qmlRegisterAnonymousType<QQuickView>("QmlBench", 1);
     qmlRegisterType(QUrl("qrc:/Benchmark.qml"), "QmlBench", 1, 0, "Benchmark");
     qmlRegisterType(QUrl("qrc:/CreationBenchmark.qml"), "QmlBench", 1, 0, "CreationBenchmark");
     qmlRegisterType(QUrl("qrc:/V8Benchmark.qml"), "QmlBench", 1, 0, "V8Benchmark");
