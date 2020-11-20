@@ -36,8 +36,9 @@ QmlBench::QmlBench(QObject *parent)
     , m_currentRandomNumberIndex(0)
 {
     m_pregeneratedRandomNumbers = new qreal[PREGENERATED_COUNT];
+    QRandomGenerator *randomGenerator = QRandomGenerator::global();
     for (int i = 0; i < PREGENERATED_COUNT; ++i)
-        m_pregeneratedRandomNumbers[i] = QRandomGenerator().generateDouble();
+        m_pregeneratedRandomNumbers[i] = randomGenerator->generateDouble();
 }
 
 QmlBench::~QmlBench()
