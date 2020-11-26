@@ -393,6 +393,10 @@ int main(int argc, char **argv)
     // GL context.
     setupDefaultSurfaceFormat(argc, argv);
 
+    // If it's not set, set the Qt Quick Controls style to Basic to ensure consistent results.
+    const QByteArray controlsStyle = qgetenv("QT_QUICK_CONTROLS_STYLE");
+    if (controlsStyle.isEmpty())
+        qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
 
     qmlRegisterAnonymousType<QQuickView>("QmlBench", 1);
     qmlRegisterType(QUrl("qrc:/Benchmark.qml"), "QmlBench", 1, 0, "Benchmark");
