@@ -1,0 +1,4 @@
+# Generated from qmlbench.pro.
+
+add_subdirectory(src)
+add_subdirectory(tools)
