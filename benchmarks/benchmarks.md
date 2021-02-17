@@ -39,7 +39,7 @@ timing out and hanging, as well as on high-end hardware without acheiving 60fps
 ## The root level declarations
 In the example above, we're testing the creation speed of the `Rectangle` delegate, so we're using `CreationBenchmark`.
 
-There are three types of rool level declarations allowed:
+There are three types of root level declarations allowed:
 - Benchmark
     - The basic QMLBench type.
     - Good for testing performance of operations with fixed durations, such as animations.
@@ -65,7 +65,7 @@ There are three types of rool level declarations allowed:
 In general, it is good practice to set both values so the benchmark can be used with any shell type.
 
 ### count
-Used in `susained-fps shell` mode. The benchmark will alter this value trying to achieve 60fps
+Used in `sustained-fps shell` mode. The benchmark will alter this value trying to achieve 60fps
 (or rather, the screen's refresh rate). Set this value to as a starting point for the benchmark to
 try first.
 
