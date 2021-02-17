@@ -87,7 +87,7 @@ Item {
 
         Connections {
             target: benchmark.view
-            onBeforeSynchronizing: fpsTimer.maybeRestart()
+            function onBeforeSynchronizing() { fpsTimer.maybeRestart(); }
         }
 
 
