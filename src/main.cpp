@@ -125,7 +125,8 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
 
     QCommandLineOption templateOption(QStringList() << QStringLiteral("s") << QStringLiteral("shell"),
                                       QStringLiteral("What kind of benchmark shell to run: 'sustained-fps', 'static-count', 'frame-count'"),
-                                      QStringLiteral("template"));
+                                      QStringLiteral("template"),
+                                      QStringLiteral("frame-count"));
     parser.addOption(templateOption);
 
     QCommandLineOption countOption(QStringLiteral("count"),
@@ -196,9 +197,12 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
         Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithCount.qml");
     else if (Options::instance.bmTemplate == QStringLiteral("static-count"))
         Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_SustainedFpsWithStaticCount.qml");
-    else { // "frame-count" and also the default option now
+    else if (Options::instance.bmTemplate == QStringLiteral("frame-count")) {
         ResultRecorder::opsAreActuallyFrames = true;
         Options::instance.bmTemplate = QStringLiteral("qrc:/Shell_TotalFramesWithStaticCount.qml");
+    } else {
+        qWarning() << "Invalid shell:" << Options::instance.bmTemplate;
+        exit(1);
     }
 
     foreach (QString input, parser.positionalArguments()) {
