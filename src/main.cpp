@@ -205,7 +205,7 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
         exit(1);
     }
 
-    foreach (QString input, parser.positionalArguments()) {
+    for (const QString& input : parser.positionalArguments()) {
         QFileInfo info(input);
         if (!info.exists()) {
             qWarning() << "input doesn't exist:" << input;
@@ -277,7 +277,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         std::cout << std::endl;
         std::cout << "Template ...........: " << Options::instance.bmTemplate.toStdString() << std::endl;
         std::cout << "Benchmarks:" << std::endl;
-        foreach (const Benchmark &b, Options::instance.benchmarks) {
+        for (const Benchmark &b : Options::instance.benchmarks) {
             std::cout << " - " << b.fileName.toStdString() << std::endl;
         }
     }
@@ -289,7 +289,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
 
     // Add everything that was not a file/dir
     for (const QString &arg : qApp->arguments()) {
-        if (!positionalArgs.contains(arg) && arg != app.arguments().first())
+        if (!positionalArgs.contains(arg) && arg != app.arguments().constFirst())
             sanitizedArgs.append(arg);
     }
 
@@ -341,7 +341,7 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         });
 
         if (ret == 0) {
-            p->start(app.arguments().first(), sanitizedArgCopy);
+            p->start(app.arguments().constFirst(), sanitizedArgCopy);
             if (!p->waitForFinished(Options::instance.timeout)) {
                 qWarning() << "Test hung (probably indefinitely) indefinitely when run with arguments: " << sanitizedArgCopy.join(' ');
                 qWarning("Aborting test run, as this probably means benchmark setup is screwed up or the hardware needs resetting!");

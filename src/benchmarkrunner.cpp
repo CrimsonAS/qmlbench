@@ -94,7 +94,7 @@ void BenchmarkRunner::start()
     m_component = new QQmlComponent(m_view->engine(), bm.fileName);
     if (m_component->status() != QQmlComponent::Ready) {
         qWarning() << "component is not ready" << bm.fileName;
-        foreach (const QQmlError &error, m_component->errors()) {
+        for (const QQmlError &error : m_component->errors()) {
             qWarning() << "ERROR: " << error;
         }
         abort();
@@ -127,7 +127,7 @@ void BenchmarkRunner::abort()
 qreal stddev(qreal avg, const QList<qreal> &list)
 {
     qreal dev = 0;
-    foreach (qreal v, list)
+    for (qreal v : list)
         dev += (v - avg) * (v - avg);
 
     // Note: - 1 is intentional!
@@ -137,7 +137,7 @@ qreal stddev(qreal avg, const QList<qreal> &list)
 qreal average(const QList<qreal> &list)
 {
     qreal avg = 0;
-    foreach (qreal r, list)
+    for (qreal r : list)
         avg += r;
     avg /= list.size();
     return avg;

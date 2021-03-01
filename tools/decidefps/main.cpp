@@ -47,12 +47,12 @@ public:
         setFormat(format);
     }
 
-    void exposeEvent(QExposeEvent *) {
+    void exposeEvent(QExposeEvent *) override {
         if (isExposed())
             render();
     }
 
-    bool event(QEvent *e)
+    bool event(QEvent *e) override
     {
         if (e->type() == QEvent::UpdateRequest) {
             render();
