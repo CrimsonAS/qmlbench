@@ -19,18 +19,6 @@ HEADERS += \
     testmodel.h \
     qmlbench.h
 
-equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 2) {
-    SOURCES += \
-        compat/qcommandlineoption.cpp \
-        compat/qcommandlineparser.cpp
-
-    HEADERS += \
-        compat/qcommandlineoption.h \
-        compat/qcommandlineparser.h
-
-    INCLUDEPATH += compat
-}
-
 CONFIG += console
 CONFIG -= app_bundle
 
