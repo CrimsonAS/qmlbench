@@ -23,6 +23,3 @@ CONFIG += console
 CONFIG -= app_bundle
 
 RESOURCES += qmlbench.qrc
-
-target.path = /root
-INSTALLS += target
