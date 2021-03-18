@@ -241,22 +241,23 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
 
 void setupDefaultSurfaceFormat(int argc, char **argv)
 {
-    bool expectingShell = false;
+    bool frameCountShell = true; // default
     for (int i = 0; i < argc; ++i) {
-        if (strcmp(argv[i], "--shell")) {
-            expectingShell = true;
-        } else if (expectingShell && strcmp(argv[i], "frame-count") == 0) {
-            QSurfaceFormat format = QSurfaceFormat::defaultFormat();
-#if QT_VERSION >= 0x050300
-            format.setSwapInterval(0);
-#else
-            fprintf(stderr, "Cannot disable swap interval on this Qt version, frame-count shell won't work properly!\n");
-            ::exit(1);
-#endif
-            QSurfaceFormat::setDefaultFormat(format);
-        } else {
-            expectingShell = false;
+        if (strcmp(argv[i], "--shell") == 0 && i < argc - 1) {
+            if (strcmp(argv[i + 1], "frame-count") != 0)
+                frameCountShell = false;
         }
+    }
+
+    if (frameCountShell) {
+        QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+#if QT_VERSION >= 0x050300
+        format.setSwapInterval(0);
+#else
+        fprintf(stderr, "Cannot disable swap interval on this Qt version, frame-count shell won't work properly!\n");
+        ::exit(1);
+#endif
+        QSurfaceFormat::setDefaultFormat(format);
     }
 }
 
