@@ -16,7 +16,7 @@ project(QMLBench
 set(QT_NO_INTERNAL_COMPATIBILITY_FUNCTIONS TRUE)
 # special case end
 
-find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Qml Quick Test)
+find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Qml Quick Test Quick3D)
 
 qt_build_repo_begin()
 

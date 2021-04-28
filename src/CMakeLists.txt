@@ -15,6 +15,7 @@ qt_internal_add_executable(qmlbench
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::Quick
+        Qt::Quick3D
 )
 
 # Resources:

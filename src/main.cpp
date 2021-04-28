@@ -32,6 +32,7 @@
 #include <QtCore>
 #include <QtGui>
 #include <QtQuick>
+#include <QtQuick3D>
 
 #include "benchmark.h"
 #include "benchmarkrunner.h"
@@ -239,7 +240,7 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
     return parser.positionalArguments();
 }
 
-void setupDefaultSurfaceFormat(int argc, char **argv)
+void setupDefaultSurfaceFormat(int argc, char **argv, bool subprocess)
 {
     bool frameCountShell = true; // default
     for (int i = 0; i < argc; ++i) {
@@ -248,6 +249,9 @@ void setupDefaultSurfaceFormat(int argc, char **argv)
                 frameCountShell = false;
         }
     }
+
+    if (subprocess)
+        QSurfaceFormat::setDefaultFormat(QQuick3D::idealSurfaceFormat());
 
     if (frameCountShell) {
         QSurfaceFormat format = QSurfaceFormat::defaultFormat();
@@ -394,10 +398,6 @@ static QObject *qmlbench_singleton_provider(QQmlEngine *, QJSEngine *)
 
 int main(int argc, char **argv)
 {
-    // We need to do this early on, so there's no interference from the shared
-    // GL context.
-    setupDefaultSurfaceFormat(argc, argv);
-
     // If it's not set, set the Qt Quick Controls style to Basic to ensure consistent results.
     const QByteArray controlsStyle = qgetenv("QT_QUICK_CONTROLS_STYLE");
     if (controlsStyle.isEmpty())
@@ -431,6 +431,8 @@ int main(int argc, char **argv)
     QStringList positionalArgs = processCommandLineArguments(*app);
 
     int ret = 0;
+
+    setupDefaultSurfaceFormat(argc, argv, needsGui);
 
     // qmlbench works as a split process mode. The parent process
     // (!isSubProcess) proxies a bunch of child processes that actually do the
