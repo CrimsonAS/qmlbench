@@ -32,7 +32,9 @@
 #include <QtCore>
 #include <QtGui>
 #include <QtQuick>
+#ifdef QT_QUICK3D_LIB
 #include <QtQuick3D>
+#endif
 
 #include "benchmark.h"
 #include "benchmarkrunner.h"
@@ -250,8 +252,12 @@ void setupDefaultSurfaceFormat(int argc, char **argv, bool subprocess)
         }
     }
 
+#ifdef QT_QUICK3D_LIB
     if (subprocess)
         QSurfaceFormat::setDefaultFormat(QQuick3D::idealSurfaceFormat());
+#else
+    Q_UNUSED(subprocess);
+#endif
 
     if (frameCountShell) {
         QSurfaceFormat format = QSurfaceFormat::defaultFormat();
