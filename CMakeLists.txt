@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.15.0)
 
 include(.cmake.conf)
-project(QMLBench
+project(QMLBenchProject
     VERSION "${QT_REPO_MODULE_VERSION}"
     DESCRIPTION "QMLBench" # special case
     HOMEPAGE_URL "https://qt.io/"
