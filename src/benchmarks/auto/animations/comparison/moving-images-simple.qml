@@ -17,7 +17,7 @@ Benchmark {
     Repeater {
         model: root.count
         Image {
-            source: "../../../../shared/butterfly-wide.png"
+            source: "qrc:///shared/butterfly-wide.png"
             x: QmlBench.getRandom() * (root.width - width)
             y: QmlBench.getRandom() * (root.height - height)
             width: 40

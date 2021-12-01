@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QmlBench 1.0
 
-// Test the creation of an asynchronously loaded image.
+// Test the creation of an Image with fairly stock settings (synchronous, no AA)
 CreationBenchmark {
     id: root;
     count: 50;
@@ -16,10 +16,8 @@ CreationBenchmark {
     delegate: Image {
         x: QmlBench.getRandom() * (root.width - width)
         y: QmlBench.getRandom() * (root.height - height)
-        source: "../../../../shared/" + root.names[index % 3];
+        source: "qrc:///shared/" + root.names[index % 3];
         width: 20
         height: 20
-        asynchronous: true
     }
 }
-

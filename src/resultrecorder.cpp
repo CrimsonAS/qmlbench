@@ -26,6 +26,7 @@
 **
 ****************************************************************************/
 
+#include <QFile>
 #include <QGuiApplication>
 #include <QOpenGLContext>
 #include <QOffscreenSurface>
@@ -33,6 +34,7 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QStandardPaths>
 
 #include <iostream>
 #include <cmath>
@@ -188,6 +190,19 @@ void ResultRecorder::finish()
     if (Options::instance.printJsonToStdout) {
         QJsonDocument results = QJsonDocument::fromVariant(m_results);
         std::cout << results.toJson().constData();
+    }
+    if (Options::instance.printJsonToStdoutWithQWarning) {
+        QJsonDocument results = QJsonDocument::fromVariant(m_results);
+        qWarning() << results.toJson().constData();
+    }
+    if (Options::instance.printJsonToFile) {
+        QJsonDocument results = QJsonDocument::fromVariant(m_results);
+        QString outputFilePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QLatin1String("/qmlbench.txt");
+        QFile outputFile(outputFilePath);
+        outputFile.open(QIODevice::WriteOnly | QIODevice::Append);
+        QTextStream stream(&outputFile);
+        stream << results.toJson().constData();
+        stream.flush();
     }
     m_results.clear();
 }

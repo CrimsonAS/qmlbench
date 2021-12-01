@@ -40,6 +40,8 @@ struct Options
         : fullscreen(false)
         , verbose(false)
         , printJsonToStdout(false)
+        , printJsonToStdoutWithQWarning(false)
+        , printJsonToFile(false)
         , isSubProcess(false)
         , repeat(1)
         , delayedStart(0)
@@ -60,6 +62,8 @@ struct Options
     bool fullscreen;
     bool verbose;
     bool printJsonToStdout;
+    bool printJsonToStdoutWithQWarning;
+    bool printJsonToFile;
     bool isSubProcess;
     int repeat;
     int delayedStart;

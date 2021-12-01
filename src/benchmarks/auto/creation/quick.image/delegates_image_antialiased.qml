@@ -16,7 +16,7 @@ CreationBenchmark {
     delegate: Image {
         x: QmlBench.getRandom() * (root.width - width)
         y: QmlBench.getRandom() * (root.height - height)
-        source: "../../../../shared/" + root.names[index % 3];
+        source: "qrc:///shared/" + root.names[index % 3];
         width: 20
         height: 20
         antialiasing: true

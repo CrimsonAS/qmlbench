@@ -76,6 +76,14 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
                                 QStringLiteral("Switches to provide JSON output of benchmark runs."));
     parser.addOption(jsonOption);
 
+    QCommandLineOption jsonOptionQWarning(QStringLiteral("json-qwarning"),
+                                          QStringLiteral("Switches to provide JSON output as qWarning of benchmark runs."));
+    parser.addOption(jsonOptionQWarning);
+
+    QCommandLineOption jsonOptionFile(QStringLiteral("json-file"),
+                                      QStringLiteral("Switches to provide JSON output as an output file."));
+    parser.addOption(jsonOptionFile);
+
     QCommandLineOption repeatOption(QStringLiteral("repeat"),
                                          QStringLiteral("Sets the number of times to repeat the benchmark, to get more stable results"),
                                          QStringLiteral("iterations"),
@@ -164,6 +172,14 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
 
     if (parser.isSet(jsonOption)) {
         Options::instance.printJsonToStdout = true;
+    }
+
+    if (parser.isSet(jsonOptionQWarning)) {
+        Options::instance.printJsonToStdoutWithQWarning = true;
+    }
+
+    if (parser.isSet(jsonOptionFile)) {
+        Options::instance.printJsonToFile = true;
     }
 
     if (parser.isSet(helpOption) || parser.positionalArguments().size() == 0) {
@@ -404,6 +420,7 @@ static QObject *qmlbench_singleton_provider(QQmlEngine *, QJSEngine *)
 
 int main(int argc, char **argv)
 {
+    qputenv("QT_ANDROID_NO_EXIT_CALL", "1");
     // If it's not set, set the Qt Quick Controls style to Basic to ensure consistent results.
     const QByteArray controlsStyle = qgetenv("QT_QUICK_CONTROLS_STYLE");
     if (controlsStyle.isEmpty())

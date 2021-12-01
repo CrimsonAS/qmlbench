@@ -10,7 +10,7 @@ CreationBenchmark {
 
     Image {
         id: sourceImage
-        source: "../../../../shared/butterfly-wide.png"
+        source: "qrc:///shared/butterfly-wide.png"
     }
 
     delegate: ShaderEffect {

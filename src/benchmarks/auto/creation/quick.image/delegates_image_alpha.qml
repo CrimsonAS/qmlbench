@@ -11,7 +11,7 @@ CreationBenchmark {
     delegate: Image {
         x: QmlBench.getRandom() * (root.width - width)
         y: QmlBench.getRandom() * (root.height - height)
-        source: "../../../../shared/alpha.png"
+        source: "qrc:///shared/alpha.png"
         width: 20
         height: 20
     }

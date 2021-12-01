@@ -148,6 +148,31 @@ The test was repeated 5 times, and for each run, the frames are printed. For the
 - "StdDev=0.83666" - the [standard deviation](https://en.wikipedia.org/wiki/Standard_deviation). The lower the better.
 - "CoV=0.00546123" - the [coefficient of variation](https://en.wikipedia.org/wiki/Coefficient_of_variation). The lower the better; a general guide is to aim for less than 5% CoV.
 
+## Running tests on Android
+
+To run qmlbench on Android, you need to use the subprocess mode. To
+pass arguments to the Android app, they need to be base64-encoded.
+Here's an example:
+
+       ~/Android/Sdk/platform-tools/adb shell am start -n org.qtproject.example.qmlbench/org.qtproject.qt.android.bindings.QtActivity -e extraappparams `echo -n "--subprocess-mode --json-file :benchmarks/auto/creation/quick.text/delegates_longtext_arabic.qml" | base64 -w 0`
+
+So, what we're doing here is
+
+- launch the right app with the right activity:  
+ -n org.qtproject.example.qmlbench/org.qtproject.qt.android.bindings.QtActivity
+- pass it the parameters, \-\-subprocess-mode \-\-json-file
+- the command line is created with echo \-n so that we don't insert a superfluous newline into the data
+- and then we encode with base64 \-w 0 to disable base64 line wrapping, so that that doesn't insert superfluous newlines either.
+
+Since we're passing \-\-json-file, that tells qmlbench to output the benchmark
+result into a file in JSON format. The file is qmlbench.txt in the application's
+data directory, so the usual incantation to get it out from a phone is
+
+       ~/Android/Sdk/platform-tools/adb pull sdcard/Android/data/org.qtproject.example.qmlbench/files/Documents/qmlbench.txt
+
+The benchmark app will not recreate the file, it always appends to it.
+If you need to start from a clean slate, just adb rm that same file.
+
 ## Creating benchmarks
 
 See [Benchmarks/benchmarks.md](./benchmarks/benchmarks.md)

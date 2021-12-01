@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QmlBench 1.0
-import "../../../shared"
+import "qrc:///shared"
 
 // Tests the creation of Items bound to a QML-defined singleton
 CreationBenchmark {
