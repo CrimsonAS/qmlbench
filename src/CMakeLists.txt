@@ -210,7 +210,8 @@ set(qmlbench_resource_files
     "shared/butterfly-wide.png"
     "shared/alpha.png"
     "shared/solid.png"
-
+    "shared/qmldir"
+    "shared/Globals.qml"
 )
 
 qt_internal_add_resource(qmlbench "qmlbench"
