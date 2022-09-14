@@ -304,7 +304,6 @@ int runHostProcess(const QCoreApplication &app, const QStringList &positionalArg
         else
             std::cout << "Frame Rate .........: default" << std::endl;
         std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
-        std::cout << "Fullscreen .........: " << (Options::instance.fullscreen ? "yes" : "no") << std::endl;
         std::cout << "Fps Interval .......: " << Options::instance.fpsInterval << std::endl;
         std::cout << "Fps Tolerance ......: " << Options::instance.fpsTolerance << std::endl;
         std::cout << "Repetitions ........: " << Options::instance.repeat;
