@@ -60,12 +60,13 @@ void BenchmarkRunner::createView()
     m_view->setResizeMode(QQuickView::SizeRootObjectToView);
     m_view->rootContext()->setContextProperty("benchmark", this);
 
-    m_view->resize(Options::instance.windowSize);
-
-    if (Options::instance.fullscreen)
+    if (Options::instance.fullscreen) {
         m_view->showFullScreen();
-    else
+    } else {
+        m_view->resize(Options::instance.windowSize);
         m_view->show();
+    }
+
     m_view->raise();
 }
 

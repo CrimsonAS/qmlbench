@@ -200,11 +200,18 @@ QStringList processCommandLineArguments(const QCoreApplication &app)
     Options::instance.destroyViewEachRun = parser.isSet(destroyViewOption);
     Options::instance.timeout = parser.value(timeoutOption).toInt();
 
-    QSize size(parser.value(widthOption).toInt(),
-               parser.value(heightOption).toInt());
+    if (QGuiApplication::platformName() == QLatin1String("eglfs"))
+        Options::instance.fullscreen = true;
 
-    if (size.isValid())
-        Options::instance.windowSize = size;
+    if (Options::instance.fullscreen && qGuiApp->primaryScreen() != nullptr) {
+        Options::instance.windowSize = qGuiApp->primaryScreen()->size();
+    } else {
+        QSize size(parser.value(widthOption).toInt(),
+                   parser.value(heightOption).toInt());
+
+        if (size.isValid())
+            Options::instance.windowSize = size;
+    }
 
     ResultRecorder::startResults(Options::instance.id);
     ResultRecorder::recordWindowSize(Options::instance.windowSize);
